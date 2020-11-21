@@ -17,6 +17,7 @@ the tool can currently only scan the addresses in the last IP octet range (like 
 ** [PLANNED] Check for running services:
 *** Telnet
 *** FTP
+*** SSH (?)
 *** HTTP-XML authentication (big question mark)
 ** [PLANNED?] Check for default credentials on those services
 
