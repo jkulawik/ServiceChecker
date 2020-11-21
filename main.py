@@ -141,12 +141,15 @@ def pinger(job_q, results_q):
         if ip is None: break
 
         try:
-            # TODO set timeouts
+            timeout = '1'
+            packet_count = '1'
+
             if OP_SYS == 'Windows':
-                proc = subprocess.Popen(['ping.exe', '/n', '1', ip], stdout=subprocess.PIPE)
+                proc = subprocess.Popen(['ping.exe', '-n', packet_count, '-w', timeout, ip], stdout=subprocess.PIPE)
                 output = proc.stdout.read()  # This outputs a byte stream
             else:
-                proc = subprocess.Popen(['ping', '-n1', '-t1', ip], stdout=subprocess.PIPE)
+                # TODO not tested on Linux
+                proc = subprocess.Popen(['ping', '-c', packet_count, '-t', timeout, ip], stdout=subprocess.PIPE)
                 output = proc.stdout.read()  # This outputs a byte stream
 
             if b"TTL" in output or b"ttl" in output:  # ...so it needs to be checked as such
@@ -168,7 +171,7 @@ Returns a list of active hosts.
 
 
 def ping_sweep(ip):
-    pool_size = 125  # Number of threads (default was 255)
+    pool_size = 30  # Number of threads (default was 255)
 
     octets = ip.split('.')
     net_prefix =  octets[0] + '.' + octets[1]+ '.' + octets[2]
@@ -245,11 +248,12 @@ def main():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        ip_list = ping_sweep(ipl) # TODO This takes too long. Substitute with a direct list for testing and remove later
+        ip_list = ping_sweep(ipl)
+        # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
         #ip_list = ['192.168.1.1', '192.168.1.2', '192.168.1.3', '192.168.1.10', '192.168.1.11', '192.168.1.27']
 
         # TODO sort the IPs
-        #print(ip_list)
+        print(ip_list)
 
         data_list = []
         # Get host names
