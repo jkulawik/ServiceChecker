@@ -49,6 +49,8 @@ def check_shodan(ip):
 
         port_data = ipinfo["data"]  # Info per port
 
+        # TODO Check if the Shodan data is up to date
+
         # -------Summary-------
 
         port_count = len(port_data)
@@ -253,7 +255,7 @@ def main():
         #ip_list = ['192.168.1.1', '192.168.1.2', '192.168.1.3', '192.168.1.10', '192.168.1.11', '192.168.1.27']
 
         # TODO sort the IPs
-        print(ip_list)
+        #print(ip_list)
 
         data_list = []
         # Get host names
