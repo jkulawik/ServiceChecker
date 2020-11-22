@@ -9,16 +9,23 @@ import subprocess
 # Utilities
 import platform
 import socket  # To query the LAN
+from os import path
 import pprint
 
-# TODO check if file exists and create if not; quit afterwards
-file = open("shodan_api_key.txt", "r")
-API_KEY = file.read()
-file.close()
-api = Shodan(API_KEY)
-
-
 OP_SYS = platform.system()
+
+# TODO check if file exists and create if not; quit afterwards
+api_file = "shodan_api_key.txt"
+
+if not path.exists(api_file):
+    open(api_file, "w+")
+    print('Shodan API file created.\nPlease paste your key inside and restart the tool.')
+    quit()
+else:
+    file = open(api_file, "r")
+    API_KEY = file.read(32)
+    file.close()
+    api = Shodan(API_KEY)
 
 
 # TODO Debug, can be deleted in final version
@@ -62,7 +69,7 @@ def check_shodan(ip):
 
         # -------Summary-------
         print('Note: The following data is collected from an outside service.\n'
-              'Use common sense whether or not it is up to date.')
+              'Use common sense on whether or not it is up to date.')
         print('Last update: {}\n'.format(ipinfo['last_update']))
 
         port_count = len(port_data)
