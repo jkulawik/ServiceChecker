@@ -210,6 +210,34 @@ def ping_sweep(ip):
 
 # End ping sweep functions
 
+# Port scan functions
+"""
+ftp = {'port': 21, 'name': 'FTP'}
+ssh = {'port': 22, 'name': 'SSH'}
+tln = {'port': 23, 'name': 'Telnet'}
+services = [ftp, ssh, tln]"""
+services = [21, 22, 23]
+port_services = {
+    21: 'FTP',
+    22: 'SSH',
+    23: 'Telnet',
+}
+
+
+def scan_ports(ip):
+    open_ports = []
+    for port in services:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex((ip, port))
+        if result == 0:
+            open_ports.append(port)
+
+        sock.close()
+    return open_ports
+
+
+# End port scan functions
+
 
 # Check if given IP (string format) is a LAN IP:
 def ip_check_local(ipl):
@@ -250,21 +278,38 @@ def main():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        ip_list = ping_sweep(ipl)
+        #ip_list = ping_sweep(ipl)
         # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
-        #ip_list = ['192.168.1.1', '192.168.1.2', '192.168.1.3', '192.168.1.10', '192.168.1.11', '192.168.1.27']
+        ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
         #print(ip_list)
 
         data_list = []
-        # Get host names
+        open_ports_found = False
+        # Get host data
         for address in ip_list:
-            data_list.append(socket.gethostbyaddr(address))
+            host_data = socket.gethostbyaddr(address)
+            # host_data structure is: (name, aliases, [IPs])
+            ip_data = []
+            ip_data.append(host_data[2][0])      # [0] First IP
+            ip_data.append(host_data[0])         # [1] Name
+            ip_data.append(scan_ports(address))  # [2] Open ports
+
+            data_list.append(ip_data)
         # ...and display them along their IPs
         for entry in data_list:
-            print("{}\t\t{}".format(entry[2][0], entry[0]))
+            print("{}\t\t{}".format(entry[0], entry[1]))
+            if len(entry[2]) != 0:
+                open_ports_found = True
+                print('├──This host has open ports:')
+                for port in entry[2]:
+                    print('├──{} ({})'.format(port, port_services.get(port)))
+            #print("├──Port {} ({}):\t\tOpen".format(port, name))
 
+        if open_ports_found:
+            print('Ports belonging to potentially dangerous services have been found on one or more of '
+                  'the devices in your local network. Make sure to investigate and close or secure them.')
 
 if __name__ == "__main__":
     main()
