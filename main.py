@@ -287,6 +287,7 @@ def main():
 
         data_list = []
         open_ports_found = False
+        print('Scanning for open ports on found hosts...')
         # Get host data
         for address in ip_list:
             host_data = socket.gethostbyaddr(address)
@@ -305,11 +306,11 @@ def main():
                 print('├──This host has open ports:')
                 for port in entry[2]:
                     print('├──{} ({})'.format(port, port_services.get(port)))
-            #print("├──Port {} ({}):\t\tOpen".format(port, name))
-
+            
         if open_ports_found:
             print('Ports belonging to potentially dangerous services have been found on one or more of '
                   'the devices in your local network. Make sure to investigate and close or secure them.')
+
 
 if __name__ == "__main__":
     main()
