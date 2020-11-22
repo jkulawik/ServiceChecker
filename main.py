@@ -8,7 +8,8 @@ import subprocess
 
 # Utilities
 import platform
-import socket # To query the LAN
+import socket  # To query the LAN
+import pprint
 
 # TODO make sure if putting an API key into the source code is a good idea
 API_KEY = 'c107zh5Xn6ICqI4yqdP1nDvPTyEBEq51'
@@ -45,25 +46,27 @@ def get_cvss_severity(score):
 def check_shodan(ip):
     try:
         ipinfo = api.host(ip)
-        # pprint.pprint(ipinfo)  # TODO remove this later
+        #pprint.pprint(ipinfo)  # TODO remove this later
 
         port_data = ipinfo["data"]  # Info per port
 
-        # TODO Check if the Shodan data is up to date
-
         # -------Summary-------
+        print('Note: This data is collected from an outside service. Use common sense whether or not it is up to date.')
+        print('Last update: {}\n'.format(ipinfo['last_update']))
 
         port_count = len(port_data)
         print("Detected {} reachable ports.".format(port_count))
         if port_count > 0:
             print('Ports available from your IP are: {}'.format(ipinfo["ports"]))
-            print('Make sure if exposing these services is desired.')
-            print('If it is not, and  you are not accessing your device/network from outside, '
-                  'it would be best to turn off those services.')
+            print('\nMake sure if exposing these services is desired.')
+            print('If it is not, and  you are not accessing your device/network from outside,\n'
+                  'it would be best to turn off those services and/or block the discovered ports from\n'
+                  'being available on the Internet by changing the firewall settings on your router.')
         else:
             print('The device/network seems to be secure.')
 
         print('')  # Break line
+        # TODO press any key to continue
 
         if 'vulns' in ipinfo:
             tmp = len(ipinfo['vulns'])
@@ -211,26 +214,30 @@ def ping_sweep(ip):
 # End ping sweep functions
 
 # Port scan functions
-"""
-ftp = {'port': 21, 'name': 'FTP'}
-ssh = {'port': 22, 'name': 'SSH'}
-tln = {'port': 23, 'name': 'Telnet'}
-services = [ftp, ssh, tln]"""
-services = [21, 22, 23]
-port_services = {
+
+services = {
     21: 'FTP',
     22: 'SSH',
     23: 'Telnet',
+    69: 'Trivial FTP',
+    2121: 'FTP*',
+    2222: 'SSH*',
+    2323: 'Telnet*',
 }
+unusual_ports_found = False
+# * means "unusual port, needs confirmation"
 
-
+# TODO optimise this
 def scan_ports(ip):
     open_ports = []
-    for port in services:
+    ports = list(services.keys())
+    for port in ports:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         result = sock.connect_ex((ip, port))
         if result == 0:
             open_ports.append(port)
+            if '*' in services.get(port):  # TODO This was not tested
+                unusual_ports_found = True
 
         sock.close()
     return open_ports
@@ -252,6 +259,52 @@ def ip_check_local(ipl):
 
 # ip.split('.')
 
+def local_scan():
+    ipl = get_lan_ip()  # Local IP
+    print('\nYour local IP is: {}'.format(ipl))
+
+    if ip_check_local(ipl) is False:
+        print('Your address does not appear to be from a local network. Aborting scan.')
+    else:
+        print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
+              'subnet).')
+
+        # ip_list = ping_sweep(ipl)
+        # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
+        ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+
+        # TODO sort the IPs
+        # print(ip_list)
+
+        data_list = []
+        open_ports_found = False
+        print('Scanning for open ports on found hosts...')
+        # Get host data
+        for address in ip_list:
+            host_data = socket.gethostbyaddr(address)
+            # host_data structure is: (name, aliases, [IPs])
+            ip_data = []
+            ip_data.append(host_data[2][0])  # [0] First IP
+            ip_data.append(host_data[0])  # [1] Name
+            ip_data.append([]) # TODO a substitute to disable port scanning for testing; remove this
+            #ip_data.append(scan_ports(address))  # [2] Open ports
+
+            data_list.append(ip_data)
+        # ...and display them along their IPs
+        for entry in data_list:
+            print("{}\t\t{}".format(entry[0], entry[1]))
+            if len(entry[2]) != 0:
+                open_ports_found = True
+                print('├──This host has open ports:')
+                for port in entry[2]:
+                    print('├──{} ({})'.format(port, services.get(port)))
+
+        if unusual_ports_found:
+            print('*unusual port, needs confirmation')
+
+        if open_ports_found:
+            print('Ports belonging to potentially dangerous services have been found on one or more of '
+                  'the devices in your local network. Make sure to investigate and close or secure them.')
 
 def main():
     # print(api.info())
@@ -262,54 +315,14 @@ def main():
 
     # Test hosts:
     # ip = '24.158.43.67'  # Test host - vulnerable
-    # ip = '40.114.177.156 ' # Duckduckgo.com
+    ip = '40.114.177.156 ' # Duckduckgo.com
     # ip = '8.8.8.8' # Test host - Google DNS
 
     print('\nYour public IP address is: {}'.format(ip))
 
-    # check_shodan(ip)
-
-    ipl = get_lan_ip()  # Local IP
-    print('\nYour local IP is: {}'.format(ipl))
-
-    if ip_check_local(ipl) is False:
-        print('Your address does not appear to be from a local network. Aborting scan.')
-    else:
-        print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
-              'subnet).')
-
-        #ip_list = ping_sweep(ipl)
-        # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
-        ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
-
-        # TODO sort the IPs
-        #print(ip_list)
-
-        data_list = []
-        open_ports_found = False
-        print('Scanning for open ports on found hosts...')
-        # Get host data
-        for address in ip_list:
-            host_data = socket.gethostbyaddr(address)
-            # host_data structure is: (name, aliases, [IPs])
-            ip_data = []
-            ip_data.append(host_data[2][0])      # [0] First IP
-            ip_data.append(host_data[0])         # [1] Name
-            ip_data.append(scan_ports(address))  # [2] Open ports
-
-            data_list.append(ip_data)
-        # ...and display them along their IPs
-        for entry in data_list:
-            print("{}\t\t{}".format(entry[0], entry[1]))
-            if len(entry[2]) != 0:
-                open_ports_found = True
-                print('├──This host has open ports:')
-                for port in entry[2]:
-                    print('├──{} ({})'.format(port, port_services.get(port)))
-            
-        if open_ports_found:
-            print('Ports belonging to potentially dangerous services have been found on one or more of '
-                  'the devices in your local network. Make sure to investigate and close or secure them.')
+    check_shodan(ip)
+    # TODO press any key to continue
+    #local_scan()
 
 
 if __name__ == "__main__":
