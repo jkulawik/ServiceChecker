@@ -11,9 +11,12 @@ import platform
 import socket  # To query the LAN
 import pprint
 
-# TODO make sure if putting an API key into the source code is a good idea
-API_KEY = 'c107zh5Xn6ICqI4yqdP1nDvPTyEBEq51'
+# TODO check if file exists and create if not; quit afterwards
+file = open("shodan_api_key.txt", "r")
+API_KEY = file.read()
+file.close()
 api = Shodan(API_KEY)
+
 
 OP_SYS = platform.system()
 
@@ -21,6 +24,13 @@ OP_SYS = platform.system()
 # TODO Debug, can be deleted in final version
 def print_type(arg):
     print("Data type: {}".format(type(arg)))
+
+def get_api_key():
+    # TODO check if file exists and create if not; quit afterwards
+    file = open("shodan_api_key.txt", "r")
+    API_KEY = file.read()
+    api = Shodan(API_KEY)
+    #print(file.read())
 
 
 def get_lan_ip():
@@ -307,6 +317,7 @@ def local_scan():
                   'the devices in your local network. Make sure to investigate and close or secure them.')
 
 def main():
+    #get_api_key()
     # print(api.info())
 
     # Get router IP
