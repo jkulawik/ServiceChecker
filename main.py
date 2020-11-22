@@ -51,7 +51,8 @@ def check_shodan(ip):
         port_data = ipinfo["data"]  # Info per port
 
         # -------Summary-------
-        print('Note: This data is collected from an outside service. Use common sense whether or not it is up to date.')
+        print('Note: The following data is collected from an outside service.\n'
+              'Use common sense whether or not it is up to date.')
         print('Last update: {}\n'.format(ipinfo['last_update']))
 
         port_count = len(port_data)
@@ -66,7 +67,6 @@ def check_shodan(ip):
             print('The device/network seems to be secure.')
 
         print('')  # Break line
-        # TODO press any key to continue
 
         if 'vulns' in ipinfo:
             tmp = len(ipinfo['vulns'])
@@ -77,9 +77,10 @@ def check_shodan(ip):
                 'based on the software and version.')
             print('Please see full scan to see more information.')
         else:
-            print('No vulnerabilities detected.')
+            print('No well-known vulnerabilities detected on the opened ports.')
 
         # -------End of the summary-------
+        input("\nPress Enter to display full scan data...")
 
         print('\nScan data:')
         print('│')
@@ -257,7 +258,6 @@ def ip_check_local(ipl):
     else:
         return True
 
-# ip.split('.')
 
 def local_scan():
     ipl = get_lan_ip()  # Local IP
@@ -286,7 +286,7 @@ def local_scan():
             ip_data = []
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
-            ip_data.append([]) # TODO a substitute to disable port scanning for testing; remove this
+            ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
             #ip_data.append(scan_ports(address))  # [2] Open ports
 
             data_list.append(ip_data)
@@ -321,7 +321,9 @@ def main():
     print('\nYour public IP address is: {}'.format(ip))
 
     check_shodan(ip)
-    # TODO press any key to continue
+    print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
+    #TODO give the choice to add shodan ports?
+    input("\nPress Enter to continue...")
     #local_scan()
 
 
