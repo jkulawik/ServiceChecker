@@ -12,11 +12,9 @@ import socket  # To query the LAN
 from os import path
 import pprint
 
+# Initialisations
 OP_SYS = platform.system()
-
-# TODO check if file exists and create if not; quit afterwards
 api_file = "shodan_api_key.txt"
-
 if not path.exists(api_file):
     open(api_file, "w+")
     print('Shodan API file created.\nPlease paste your key inside and restart the tool.')
@@ -26,18 +24,12 @@ else:
     API_KEY = file.read(32)
     file.close()
     api = Shodan(API_KEY)
+# End initialisations
 
 
 # TODO Debug, can be deleted in final version
 def print_type(arg):
     print("Data type: {}".format(type(arg)))
-
-def get_api_key():
-    # TODO check if file exists and create if not; quit afterwards
-    file = open("shodan_api_key.txt", "r")
-    API_KEY = file.read()
-    api = Shodan(API_KEY)
-    #print(file.read())
 
 
 def get_lan_ip():
@@ -324,7 +316,7 @@ def local_scan():
                   'the devices in your local network. Make sure to investigate and close or secure them.')
 
 def main():
-    #get_api_key()
+    # API loading is handled in the global scope on the top of the file.
     # print(api.info())
 
     # Get router IP
