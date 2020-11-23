@@ -272,17 +272,38 @@ def port_scan(job_q, results_q):
         results_q.put(output_data)
 
 # TODO optimise this
-def scan_ports(ip):
-    open_ports = []
-    ports = list(services.keys())
-    for port in ports:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex((ip, port))
-        if result == 0:
-            open_ports.append(port)
+# This is almost the same as ping_sweep. Check that function for comments
+def scan_ports(ip_list):
+    start_time = time.time()
+    pool_size = len(ip_list)
 
-        sock.close()
-    return open_ports
+    print('Scanning ports in the detected IPs...')
+
+    jobs = multiprocessing.Queue()
+    results = multiprocessing.Queue()
+
+    pool = [multiprocessing.Process(target=port_scan, args=(jobs, results))
+            for i in range(pool_size)]
+    for p in pool:
+        p.start()
+
+    for ip in ip_list:
+        jobs.put(ip)
+
+    for p in pool:
+        jobs.put(None)
+    for p in pool:
+        p.join()
+
+    ip_ports = []
+    while not results.empty():
+        ip_ports.append(results.get())
+
+    print('Port scan finished.')
+    print("Scan duration: {} seconds".format(time.time() - start_time))
+
+    # The result is a list with [ ip, open_ports[] ] in each entry
+    return ip_ports
 
 
 # End port scan functions
