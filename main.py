@@ -189,34 +189,42 @@ Returns a list of active hosts.
 
 def ping_sweep(ip):
     start_time = time.time()
-    pool_size = 30  # Number of threads (default was 255)
+    pool_size = 51  # Number of threads
+    # Default was 255 = 1 thread per address.
+    # Kinda heavy, so instead it's 51 threads, 5 addresses each
 
     octets = ip.split('.')
-    net_prefix =  octets[0] + '.' + octets[1]+ '.' + octets[2]
+    net_prefix = octets[0] + '.' + octets[1]+ '.' + octets[2]
 
     print('Scanning local network...')
 
     jobs = multiprocessing.Queue()
     results = multiprocessing.Queue()
 
+    # Create pool_size of threads, put them in the pool
     pool = [multiprocessing.Process(target=pinger, args=(jobs, results))
                 for i in range(pool_size)]
 
+    # Start the threads
     for p in pool:
         p.start()
 
-    # This is the address range.
-    # It could be changed to scan in a wider range easily,
-    # but that would require getting the subnet mask first, which proved to be very problematic.
-    for i in range(1, 255):
+    # Add jobs for the threads to do:
+    for i in range(1, 255):  # This is the address range.
         jobs.put(net_prefix+'.{0}'.format(i))
+        # This could be changed to scan in a wider range easily,
+        # but that would require getting the subnet mask first,
+        # which was too problematic to implement for the time.
 
+    # Add None jobs to ensure threads terminate properly //is this really necessary?
     for p in pool:
         jobs.put(None)
 
+    # This makes the function wait for all threads to finish
     for p in pool:
         p.join()
 
+    # Copy the results:
     ip_list = []
     while not results.empty():
         ip_list.append(results.get())
