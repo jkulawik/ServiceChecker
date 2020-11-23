@@ -10,6 +10,7 @@ import subprocess
 import platform
 import socket  # To query the LAN
 from os import path
+import time
 import pprint
 
 # Initialisations
@@ -186,6 +187,7 @@ Returns a list of active hosts.
 
 
 def ping_sweep(ip):
+    start_time = time.time()
     pool_size = 30  # Number of threads (default was 255)
 
     octets = ip.split('.')
@@ -219,6 +221,7 @@ def ping_sweep(ip):
         ip_list.append(results.get())
 
     print('Ping sweep finished.')
+    print("Scan duration: {} seconds".format(time.time() - start_time))
     return ip_list
 
 # End ping sweep functions
@@ -289,6 +292,7 @@ def local_scan():
         data_list = []
         open_ports_found = False
         print('Scanning for open ports on found hosts...')
+        start_time = time.time()
         # Get host data
         for address in ip_list:
             host_data = socket.gethostbyaddr(address)
@@ -301,6 +305,7 @@ def local_scan():
 
             data_list.append(ip_data)
         # ...and display them along their IPs
+        print("Scan duration: {} seconds".format(time.time() - start_time))
         for entry in data_list:
             print("{}\t\t{}".format(entry[0], entry[1]))
             if len(entry[2]) != 0:
