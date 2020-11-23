@@ -9,6 +9,8 @@ import subprocess
 # Utilities
 import platform
 import socket  # To query the LAN
+socket.setdefaulttimeout(1.0)
+
 from os import path
 import time
 import pprint
@@ -151,7 +153,7 @@ def check_shodan(ip):
 
 # Ping sweep functions
 
-
+# Thread job
 def pinger(job_q, results_q):
     while True:
         ip = job_q.get()
@@ -209,14 +211,14 @@ def ping_sweep(ip):
     for p in pool:
         p.start()
 
-    # Add jobs for the threads to do:
+    # Add jobs (IPs) for the threads to do:
     for i in range(1, 255):  # This is the address range.
         jobs.put(net_prefix+'.{0}'.format(i))
         # This could be changed to scan in a wider range easily,
         # but that would require getting the subnet mask first,
         # which was too problematic to implement for the time.
 
-    # Add None jobs to ensure threads terminate properly //is this really necessary?
+    # Add None jobs to ensure threads terminate properly
     for p in pool:
         jobs.put(None)
 
@@ -242,12 +244,28 @@ services = {
     22: 'SSH',
     23: 'Telnet',
     69: 'Trivial FTP',
-    2121: 'FTP*',
-    2222: 'SSH*',
-    2323: 'Telnet*',
+    2121: 'FTP (unofficial port)',
+    2222: 'SSH (unofficial port)',
+    2323: 'Telnet (unofficial port)',
 }
-unusual_ports_found = False
-# * means "unusual port, needs confirmation"
+
+# Thread job
+def port_scan(job_q, results_q):
+    ip = job_q.get()
+    if ip is None: break
+
+    open_ports = []
+    ports = list(services.keys())
+
+    for port in ports:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex((ip, port))
+        if result == 0:
+            open_ports.append(port)
+        sock.close()
+
+    output_data = [ip, open_ports]
+    results_q.put(output_data)
 
 # TODO optimise this
 def scan_ports(ip):
@@ -255,12 +273,9 @@ def scan_ports(ip):
     ports = list(services.keys())
     for port in ports:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1.0)
         result = sock.connect_ex((ip, port))
         if result == 0:
             open_ports.append(port)
-            if '*' in services.get(port):  # TODO This was not tested
-                unusual_ports_found = True
 
         sock.close()
     return open_ports
@@ -310,11 +325,13 @@ def local_scan():
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
             ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
-            #ip_data.append(scan_ports(address))  # [2] Open ports
+            #ip_data.append(scan_ports(address))  # [2] Open ports (a list)
 
             data_list.append(ip_data)
-        # ...and display them along their IPs
+
         print("Scan duration: {} seconds".format(time.time() - start_time))
+
+        # Display hosts with found ports
         for entry in data_list:
             print("{}\t\t{}".format(entry[0], entry[1]))
             if len(entry[2]) != 0:
@@ -323,8 +340,6 @@ def local_scan():
                 for port in entry[2]:
                     print('├──{} ({})'.format(port, services.get(port)))
 
-        if unusual_ports_found:
-            print('*unusual port, needs confirmation')
 
         if open_ports_found:
             print('Ports belonging to potentially dangerous services have been found on one or more of '
