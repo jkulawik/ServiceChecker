@@ -13,7 +13,7 @@ Features:
   * The tool determines your local IP to find your network prefix.
   * The tool presumes a /24 subnet mask (due to considerable issues with getting the network mask via Python),
 and hence can currently only scan the addresses in the last IP octet range (`X.X.X.1` - `X.X.X.255`). It should be sufficient for standard home networks, however.
-  * The tool then does a ping sweep to find active hosts in the network.
+  * The tool then does a ping sweep to find active hosts in the network (please note that not all devices are pingable at all times - e.g. Android phones put the Wifi to sleep for battery saving and might not respond consistently. This means they will be skipped in the port scan later, too).
   * Check and display the host names to make them easier to identify.
   * Scan for open ports (which hint at vulnerable services running):
     * Telnet
