@@ -333,7 +333,8 @@ def local_scan():
               'subnet).')
 
         # ip_list = ping_sweep(ipl)
-        # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
+        # TODO The scan takes too long for testing other things.
+        #  Substitute with a direct list for now and remove it later
         ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
@@ -341,9 +342,7 @@ def local_scan():
 
         data_list = []
         open_ports_found = False
-
         ip_ports = scan_ports(ip_list)
-        print(ip_ports)  # TODO debug thing, delet this
 
         # Get host data
         for address in ip_list:
@@ -353,11 +352,12 @@ def local_scan():
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
 
+            # TODO append the ports to appropriate IPs somehow
+            #example entry from ip_ports is: [['192.168.1.32', [21, 22, 23]]
+            #ip_data.append(PORT LIST HERE)  # [2] Open ports (a list)
             #ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
-            #ip_data.append(scan_ports(address))  # [2] Open ports (a list)
 
             data_list.append(ip_data)
-
 
         # Display hosts with found ports
         for entry in data_list:
