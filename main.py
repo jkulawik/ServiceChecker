@@ -36,10 +36,6 @@ def print_type(arg):
     print("Data type: {}".format(type(arg)))
 
 
-def get_lan_ip():
-    ip = socket.gethostbyname(socket.gethostname())
-    return ip
-
 
 def get_cvss_severity(score):
     score = float(score)
@@ -271,13 +267,13 @@ def port_scan(job_q, results_q):
         output_data = [ip, open_ports]
         results_q.put(output_data)
 
-# TODO optimise this
+
 # This is almost the same as ping_sweep. Check that function for comments
 def scan_ports(ip_list):
     start_time = time.time()
     pool_size = len(ip_list)
 
-    print('Scanning ports in the detected IPs...')
+    print('Scanning for open ports on found hosts...')
 
     jobs = multiprocessing.Queue()
     results = multiprocessing.Queue()
@@ -308,6 +304,10 @@ def scan_ports(ip_list):
 
 # End port scan functions
 
+def get_lan_ip():
+    # TODO ensure this uses the correct interface and not smth virtual
+    ip = socket.gethostbyname(socket.gethostname())
+    return ip
 
 # Check if given IP (string format) is a LAN IP:
 def ip_check_local(ipl):
@@ -323,6 +323,7 @@ def ip_check_local(ipl):
 
 def local_scan():
     ipl = get_lan_ip()  # Local IP
+
     print('\nYour local IP is: {}'.format(ipl))
 
     if ip_check_local(ipl) is False:
@@ -331,17 +332,19 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        ip_list = ping_sweep(ipl)
+        # ip_list = ping_sweep(ipl)
         # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
-        #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+        ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
         # print(ip_list)
 
         data_list = []
         open_ports_found = False
-        print('Scanning for open ports on found hosts...')
-        start_time = time.time()
+
+        ip_ports = scan_ports(ip_list)
+        print(ip_ports)  # TODO debug thing, delet this
+
         # Get host data
         for address in ip_list:
             host_data = socket.gethostbyaddr(address)
@@ -349,21 +352,23 @@ def local_scan():
             ip_data = []
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
-            ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
+
+            #ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
             #ip_data.append(scan_ports(address))  # [2] Open ports (a list)
 
             data_list.append(ip_data)
 
-        print("Scan duration: {} seconds".format(time.time() - start_time))
 
         # Display hosts with found ports
         for entry in data_list:
             print("{}\t\t{}".format(entry[0], entry[1]))
+            # TODO fix this
+            '''
             if len(entry[2]) != 0:
                 open_ports_found = True
                 print('├──This host has open ports:')
                 for port in entry[2]:
-                    print('├──{} ({})'.format(port, services.get(port)))
+                    print('├──{} ({})'.format(port, services.get(port))) '''
 
 
         if open_ports_found:
