@@ -25,6 +25,7 @@ else:
     API_KEY = file.read(32)
     file.close()
     api = Shodan(API_KEY)
+
 # End initialisations
 
 
@@ -282,9 +283,9 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        # ip_list = ping_sweep(ipl)
+        ip_list = ping_sweep(ipl)
         # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
-        ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+        #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
         # print(ip_list)
@@ -300,8 +301,8 @@ def local_scan():
             ip_data = []
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
-            #ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
-            ip_data.append(scan_ports(address))  # [2] Open ports
+            ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
+            #ip_data.append(scan_ports(address))  # [2] Open ports
 
             data_list.append(ip_data)
         # ...and display them along their IPs
@@ -320,27 +321,46 @@ def local_scan():
         if open_ports_found:
             print('Ports belonging to potentially dangerous services have been found on one or more of '
                   'the devices in your local network. Make sure to investigate and close or secure them.')
+        else:
+            print('No ports belonging to potentially dangerous services have been found.')
 
 def main():
     # API loading is handled in the global scope on the top of the file.
     # print(api.info())
 
-    # Get router IP
-    # ipify is open source and free; no visitor information is logged.
-    ip = get('https://api.ipify.org').text
-
     # Test hosts:
     # ip = '24.158.43.67'  # Test host - vulnerable
-    ip = '40.114.177.156 ' # Duckduckgo.com
+    ip = '40.114.177.156 '  # Duckduckgo.com
     # ip = '8.8.8.8' # Test host - Google DNS
 
-    print('\nYour public IP address is: {}'.format(ip))
+    print('\n----Service Checker----\n')
 
-    #check_shodan(ip)
-    print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
-    # TODO give the choice to add shodan ports?
-    input("\nPress Enter to continue...")
-    local_scan()
+    while(True):
+        print("\nWhat would you like to do?")
+        command = input("Type:\n"
+                        "1 to check your external IP on Shodan\n"
+                        "2 to scan your local network\n"
+                        "3 to create alerts for your local network\n"
+                        "q to exit\n")
+        if command == 'q':
+            quit()
+        elif command == '1':
+            # Get router IP
+            # ipify is open source and free; no visitor information is logged.
+            # ip = get('https://api.ipify.org').text # TODO uncomment for final release
+            print('\nYour public IP address is: {}'.format(ip))
+            check_shodan(ip)
+        elif command == '2':
+            print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
+            # TODO give the choice to add shodan ports?
+            #input("\nPress Enter to continue...")
+            local_scan()
+        elif command == '3':
+            pass
+        else:
+            print('Wrong command.')
+
+
 
 
 if __name__ == "__main__":
