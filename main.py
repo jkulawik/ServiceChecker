@@ -157,7 +157,8 @@ def check_shodan(ip):
 def pinger(job_q, results_q):
     while True:
         ip = job_q.get()
-        if ip is None: break
+        if ip is None:
+            break
 
         try:
             timeout = '1'
@@ -249,23 +250,26 @@ services = {
     2323: 'Telnet (unofficial port)',
 }
 
+
 # Thread job
 def port_scan(job_q, results_q):
-    ip = job_q.get()
-    if ip is None: break
+    while True:
+        ip = job_q.get()
+        if ip is None:
+            break
 
-    open_ports = []
-    ports = list(services.keys())
+        open_ports = []
+        ports = list(services.keys())
 
-    for port in ports:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex((ip, port))
-        if result == 0:
-            open_ports.append(port)
-        sock.close()
+        for port in ports:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((ip, port))
+            if result == 0:
+                open_ports.append(port)
+            sock.close()
 
-    output_data = [ip, open_ports]
-    results_q.put(output_data)
+        output_data = [ip, open_ports]
+        results_q.put(output_data)
 
 # TODO optimise this
 def scan_ports(ip):
