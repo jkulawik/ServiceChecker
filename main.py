@@ -243,6 +243,7 @@ def scan_ports(ip):
     ports = list(services.keys())
     for port in ports:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1.0)
         result = sock.connect_ex((ip, port))
         if result == 0:
             open_ports.append(port)
@@ -295,8 +296,8 @@ def local_scan():
             ip_data = []
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
-            ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
-            #ip_data.append(scan_ports(address))  # [2] Open ports
+            #ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
+            ip_data.append(scan_ports(address))  # [2] Open ports
 
             data_list.append(ip_data)
         # ...and display them along their IPs
@@ -330,11 +331,11 @@ def main():
 
     print('\nYour public IP address is: {}'.format(ip))
 
-    check_shodan(ip)
+    #check_shodan(ip)
     print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
-    #TODO give the choice to add shodan ports?
+    # TODO give the choice to add shodan ports?
     input("\nPress Enter to continue...")
-    #local_scan()
+    local_scan()
 
 
 if __name__ == "__main__":
