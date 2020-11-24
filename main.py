@@ -9,7 +9,7 @@ import subprocess
 # Utilities
 import platform
 import socket  # To query the LAN
-socket.setdefaulttimeout(1.0)
+socket.setdefaulttimeout(1.0) # This is for the scans to be faster
 
 from os import path
 import time
@@ -390,6 +390,19 @@ import dhcp_listener
 
 # End monitor functions
 
+EMAIL_TO = 'jkulawik13@gmail.com'
+EMAIL_FROM = 'test@service.checker'
+
+def send_mail(subject, content):
+    """Send an email using a local mail server."""
+    from smtplib import SMTP
+    socket.setdefaulttimeout(5.0) # So that this doesn't time out
+    server = SMTP(port=587)
+    server.connect()
+    server.sendmail(EMAIL_FROM, EMAIL_TO, 'Subject: {}\n\n{}'.format(subject, content))
+    server.quit()
+    socket.setdefaulttimeout(1.0) # To return to the default value - see top of file
+
 
 def main():
     # API loading is handled in the global scope on the top of the file.
@@ -408,6 +421,7 @@ def main():
                         "1 to check your external IP on Shodan\n"
                         "2 to scan your local network\n"
                         "3 to start monitoring the network\n"
+                        "4 to test e-mail notifications\n"
                         "q to exit\n")
         if command == 'q':
             quit()
@@ -424,6 +438,8 @@ def main():
             local_scan()
         elif command == '3':
             dhcp_listener.start_sniffing()
+        elif command == '4':
+            send_mail('Test', 'This is a test message content.')
         else:
             print('Wrong command.')
 
