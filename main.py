@@ -9,6 +9,8 @@ import subprocess
 # Utilities
 import platform
 import socket  # To query the LAN
+socket.setdefaulttimeout(1.0)
+
 from os import path
 import time
 import pprint
@@ -33,10 +35,6 @@ else:
 def print_type(arg):
     print("Data type: {}".format(type(arg)))
 
-
-def get_lan_ip():
-    ip = socket.gethostbyname(socket.gethostname())
-    return ip
 
 
 def get_cvss_severity(score):
@@ -151,11 +149,12 @@ def check_shodan(ip):
 
 # Ping sweep functions
 
-
+# Thread job
 def pinger(job_q, results_q):
     while True:
         ip = job_q.get()
-        if ip is None: break
+        if ip is None:
+            break
 
         try:
             timeout = '1'
@@ -209,14 +208,14 @@ def ping_sweep(ip):
     for p in pool:
         p.start()
 
-    # Add jobs for the threads to do:
+    # Add jobs (IPs) for the threads to do:
     for i in range(1, 255):  # This is the address range.
         jobs.put(net_prefix+'.{0}'.format(i))
         # This could be changed to scan in a wider range easily,
         # but that would require getting the subnet mask first,
         # which was too problematic to implement for the time.
 
-    # Add None jobs to ensure threads terminate properly //is this really necessary?
+    # Add None jobs to ensure threads terminate properly
     for p in pool:
         jobs.put(None)
 
@@ -242,31 +241,82 @@ services = {
     22: 'SSH',
     23: 'Telnet',
     69: 'Trivial FTP',
-    2121: 'FTP*',
-    2222: 'SSH*',
-    2323: 'Telnet*',
+    2121: 'FTP (unofficial port)',
+    2222: 'SSH (unofficial port)',
+    2323: 'Telnet (unofficial port)',
 }
-unusual_ports_found = False
-# * means "unusual port, needs confirmation"
 
-# TODO optimise this
-def scan_ports(ip):
-    open_ports = []
-    ports = list(services.keys())
-    for port in ports:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1.0)
-        result = sock.connect_ex((ip, port))
-        if result == 0:
-            open_ports.append(port)
-            if '*' in services.get(port):  # TODO This was not tested
-                unusual_ports_found = True
 
-        sock.close()
-    return open_ports
+# Thread job
+def port_scan(job_q, results_q):
+    while True:
+        ip = job_q.get()
+        if ip is None:
+            break
+
+        open_ports = []
+        ports = list(services.keys())
+
+        for port in ports:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((ip, port))
+            if result == 0:
+                open_ports.append(port)
+            sock.close()
+
+        output_data = [ip, open_ports]
+        results_q.put(output_data)
+
+
+# This is almost the same as ping_sweep. Check that function for comments
+def scan_ports(ip_list):
+    start_time = time.time()
+    pool_size = len(ip_list)
+
+    print('Scanning for open ports on found hosts...')
+
+    jobs = multiprocessing.Queue()
+    results = multiprocessing.Queue()
+
+    pool = [multiprocessing.Process(target=port_scan, args=(jobs, results))
+            for i in range(pool_size)]
+    for p in pool:
+        p.start()
+
+    for ip in ip_list:
+        jobs.put(ip)
+
+    for p in pool:
+        jobs.put(None)
+    for p in pool:
+        p.join()
+
+    ip_ports = []
+    while not results.empty():
+        ip_ports.append(results.get())
+
+    print('Port scan finished.')
+    print("Scan duration: {} seconds".format(time.time() - start_time))
+
+    # The result is a list with [ ip, open_ports[] ] in each entry
+    return ip_ports
+
+
+# Gets the ports of the given IP from a list of elements of this kind: [ ip, open_ports[] ]
+# Example: ['192.168.1.32', [21, 22, 23]]
+# This isn't very efficient, but has to do for now...
+def get_ports(ip, ip_ports):
+    for entry in ip_ports:
+        if ip in entry:
+            return entry[1]
 
 
 # End port scan functions
+
+def get_lan_ip():
+    # TODO ensure this uses the correct interface and not smth virtual
+    ip = socket.gethostbyname(socket.gethostname())
+    return ip
 
 
 # Check if given IP (string format) is a LAN IP:
@@ -283,6 +333,7 @@ def ip_check_local(ipl):
 
 def local_scan():
     ipl = get_lan_ip()  # Local IP
+
     print('\nYour local IP is: {}'.format(ipl))
 
     if ip_check_local(ipl) is False:
@@ -291,17 +342,18 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        ip_list = ping_sweep(ipl)
-        # TODO The scan takes too long for testing. Substitute with a direct list for now and remove it later
-        #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+        # ip_list = ping_sweep(ipl)
+        # TODO The scan takes too long for testing other things.
+        #  Substitute with a direct list for now and remove it later
+        ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
         # print(ip_list)
 
         data_list = []
         open_ports_found = False
-        print('Scanning for open ports on found hosts...')
-        start_time = time.time()
+        ip_ports = scan_ports(ip_list)
+
         # Get host data
         for address in ip_list:
             host_data = socket.gethostbyaddr(address)
@@ -309,22 +361,22 @@ def local_scan():
             ip_data = []
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
-            ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
-            #ip_data.append(scan_ports(address))  # [2] Open ports
+
+            ports = get_ports(address,ip_ports)
+            ip_data.append(ports)  # [2] Open ports (a list)
+            #ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
 
             data_list.append(ip_data)
-        # ...and display them along their IPs
-        print("Scan duration: {} seconds".format(time.time() - start_time))
+
+        # Display hosts with found ports
         for entry in data_list:
             print("{}\t\t{}".format(entry[0], entry[1]))
+
             if len(entry[2]) != 0:
                 open_ports_found = True
                 print('├──This host has open ports:')
                 for port in entry[2]:
                     print('├──{} ({})'.format(port, services.get(port)))
-
-        if unusual_ports_found:
-            print('*unusual port, needs confirmation')
 
         if open_ports_found:
             print('Ports belonging to potentially dangerous services have been found on one or more of '
