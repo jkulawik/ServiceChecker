@@ -5,5 +5,3 @@ pip install scapy
 
 # or 
 pip install -r requirements.txt
-
-C:\Users\<YOU>\AppData\Roaming\Python\Python38\site-packages\shodan

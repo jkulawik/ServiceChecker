@@ -124,7 +124,7 @@ def handle_dhcp_packet(packet):
 
     return
 
-
+# This is just to use this script as a dependency
 def start_sniffing():
     sniff(filter="udp and (port 67 or 68)", prn=handle_dhcp_packet)
 
