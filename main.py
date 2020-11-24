@@ -311,8 +311,6 @@ def get_ports(ip, ip_ports):
             return entry[1]
 
 
-# End port scan functions
-
 def get_lan_ip():
     # TODO ensure this uses the correct interface and not smth virtual
     ip = socket.gethostbyname(socket.gethostname())
@@ -384,6 +382,15 @@ def local_scan():
         else:
             print('No ports belonging to potentially dangerous services have been found.')
 
+# End port scan functions
+
+# Monitor functions
+
+import dhcp_listener
+
+# End monitor functions
+
+
 def main():
     # API loading is handled in the global scope on the top of the file.
     # print(api.info())
@@ -400,7 +407,7 @@ def main():
         command = input("Type:\n"
                         "1 to check your external IP on Shodan\n"
                         "2 to scan your local network\n"
-                        "3 to create alerts for your local network\n"
+                        "3 to start monitoring the network\n"
                         "q to exit\n")
         if command == 'q':
             quit()
@@ -416,7 +423,7 @@ def main():
             #input("\nPress Enter to continue...")
             local_scan()
         elif command == '3':
-            pass
+            dhcp_listener.start_sniffing()
         else:
             print('Wrong command.')
 

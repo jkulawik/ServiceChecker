@@ -1,6 +1,7 @@
 
 
 pip install shodan
+pip install scapy
 
 # or 
 pip install -r requirements.txt
