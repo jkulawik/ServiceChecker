@@ -37,6 +37,19 @@ For that reason you will need an account on https://www.shodan.io/. It is free a
 * If everything is correct, the tool will work correctly after relaunching.
 * Follow the command line hints.
 
+## Issues
+
+Sometimes when scanning a local network, the tool will choose the wrong interface, for example a VMware one.
+In my case I am expecting `192.168.1.27` as my address, but I sometimes I get `192.168.56.1`.
+This seems to happen when I have another terminal open, but there might be other reasons too.
+
+For users: make sure that the local IP in the tool matches the IP you use for network access. Instructions:
+* [Windows](https://www.wikihow.com/Check-a-Computer-IP-Address) (make sure you're checking the IP from wireless or ethernet, whichever you use, and not something else)
+* [Mac](https://www.wikihow.com/Find-Your-IP-Address-on-a-Mac)
+* Linux - `ip a` or `ifconfig`
+
+If the IP doesn't match, stop any programs that might interfere and relaunch the tool.
+
 ## Contributing
 
 More ports to scan are always welcome. Feel free to suggest them.
