@@ -302,12 +302,22 @@ def scan_ports(ip_list):
     return ip_ports
 
 
+# Gets the ports of the given IP from a list of elements of this kind: [ ip, open_ports[] ]
+# Example: ['192.168.1.32', [21, 22, 23]]
+# This isn't very efficient, but has to do for now...
+def get_ports(ip, ip_ports):
+    for entry in ip_ports:
+        if ip in entry:
+            return entry[1]
+
+
 # End port scan functions
 
 def get_lan_ip():
     # TODO ensure this uses the correct interface and not smth virtual
     ip = socket.gethostbyname(socket.gethostname())
     return ip
+
 
 # Check if given IP (string format) is a LAN IP:
 def ip_check_local(ipl):
@@ -352,9 +362,8 @@ def local_scan():
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
 
-            # TODO append the ports to appropriate IPs somehow
-            #example entry from ip_ports is: [['192.168.1.32', [21, 22, 23]]
-            #ip_data.append(PORT LIST HERE)  # [2] Open ports (a list)
+            ports = get_ports(address,ip_ports)
+            ip_data.append(ports)  # [2] Open ports (a list)
             #ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
 
             data_list.append(ip_data)
@@ -362,14 +371,12 @@ def local_scan():
         # Display hosts with found ports
         for entry in data_list:
             print("{}\t\t{}".format(entry[0], entry[1]))
-            # TODO fix this
-            '''
+
             if len(entry[2]) != 0:
                 open_ports_found = True
                 print('├──This host has open ports:')
                 for port in entry[2]:
-                    print('├──{} ({})'.format(port, services.get(port))) '''
-
+                    print('├──{} ({})'.format(port, services.get(port)))
 
         if open_ports_found:
             print('Ports belonging to potentially dangerous services have been found on one or more of '
