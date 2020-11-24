@@ -6,6 +6,9 @@ from requests import get
 import multiprocessing
 import subprocess
 
+# Passive scan
+import dhcp_listener
+
 # Utilities
 import platform
 import socket  # To query the LAN
@@ -384,14 +387,11 @@ def local_scan():
 
 # End port scan functions
 
-# Monitor functions
+# Email
 
-import dhcp_listener
-
-# End monitor functions
-
-EMAIL_TO = 'jkulawik13@gmail.com'
+EMAIL_TO = 'some@mail.com'
 EMAIL_FROM = 'test@service.checker'
+
 
 def send_mail(subject, content):
     """Send an email using a local mail server."""
@@ -402,6 +402,8 @@ def send_mail(subject, content):
     server.sendmail(EMAIL_FROM, EMAIL_TO, 'Subject: {}\n\n{}'.format(subject, content))
     server.quit()
     socket.setdefaulttimeout(1.0) # To return to the default value - see top of file
+
+# End email
 
 
 def main():
