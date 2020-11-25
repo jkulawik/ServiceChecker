@@ -43,6 +43,7 @@ def get_option(dhcp_options, key):
 def handle_dhcp_packet(packet):
 
     # Match DHCP discover
+    # TODO this message is suspicious
     if DHCP in packet and packet[DHCP].options[0][1] == 1:
         print('---')
         print('New DHCP Discover')
@@ -86,7 +87,8 @@ def handle_dhcp_packet(packet):
 
 
     # Match DHCP ack
-    elif DHCP in packet and packet[DHCP].options[0][1] == 5:
+    elif DHCP in packet and packet[DHCP].options[0][1] == 5\
+            and packet[BOOTP].yiaddr != '0.0.0.0':
         print('---')
         print('New DHCP Ack')
         #print(packet.summary())
@@ -123,6 +125,7 @@ def handle_dhcp_packet(packet):
         print(ls(packet))
 
     return
+
 
 # This is just to use this script as a dependency
 def start_sniffing():
