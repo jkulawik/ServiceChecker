@@ -8,13 +8,10 @@ from os import path
 api_file = "shodan_api_key.txt"
 if not path.exists(api_file):
     open(api_file, "w+")
-    print('Shodan API file created.\nPlease paste your key inside and restart the tool.')
+    print('Shodan API file created.\n'
+          'Paste your key inside if you wish to use the Shodan check.\n'
+          'Either way, restart the tool.')
     quit()
-else:
-    file = open(api_file, "r")
-    API_KEY = file.read(32)
-    file.close()
-    api = Shodan(API_KEY)
 
 
 def get_cvss_severity(score):
@@ -34,6 +31,11 @@ def get_cvss_severity(score):
 
 # The main function of the file
 def check_shodan(ip):
+    file = open(api_file, "r")
+    API_KEY = file.read(32)
+    file.close()
+    api = Shodan(API_KEY)
+
     try:
         ipinfo = api.host(ip)
         #pprint.pprint(ipinfo)  # TODO remove this later
