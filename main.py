@@ -100,8 +100,8 @@ def scan_ports(ip_list):
 # Gets the ports of the given IP from a list of elements of this kind: [ ip, open_ports[] ]
 # Example: Takes a list of elements like this: ['192.168.1.32', [21, 22, 23]]
 # and returns [21, 22, 23]
-# This isn't very efficient, but has to do for now...
 def get_ports(ip, ip_ports):
+    # This isn't very efficient, but has to do for now...
     for entry in ip_ports:
         if ip in entry:
             return entry[1]
@@ -111,6 +111,20 @@ def get_lan_ip():
     # TODO ensure this uses the correct interface and not smth virtual
     ip = socket.gethostbyname(socket.gethostname())
     return ip
+
+
+def get_mac_details(mac_address):
+    # Truncate address for security reasons
+    vendor_string = mac_address[0:8]
+    print(vendor_string)
+
+    # An API is used to get the vendor details
+    url = "https://api.macvendors.com/"
+
+    # Use get method to fetch details
+    response = get(url + vendor_string).text
+    return response
+
 
 
 # Check if given IP (string format) is a LAN IP:
@@ -158,6 +172,9 @@ def local_scan():
             hostname = host_data[0]
             ports = get_ports(address, ip_ports)
             mac_addr = str(getmacbyip(address))
+            vendor = get_mac_details(mac_addr)
+
+            # TODO display vendor data
 
             ip_data = [
                 ip_addr,
@@ -213,7 +230,7 @@ def main():
                         "1 to check your external IP on Shodan\n"
                         "2 to scan your local network\n"
                         "3 to start monitoring the network\n"
-                        "4 to test e-mail notifications\n"
+                        "4 to run the current test\n"
                         "q to exit\n")
         if command == 'q':
             quit()
@@ -230,7 +247,8 @@ def main():
         elif command == '3':
             dhcp_listener.start_sniffing()
         elif command == '4':
-            simple_mail.send('Test', 'This is a test message content.')
+            #simple_mail.send('Test', 'This is a test message content.')
+            get_mac_details('d8:e0:e1')  # Already truncated for security reasons; full mac works though.
         else:
             print('Wrong command.')
         # input("\nPress Enter to go back to the menu...") # TODO flush the input buffer if this is to work
