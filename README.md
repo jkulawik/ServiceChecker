@@ -26,16 +26,18 @@ and hence can currently only scan the addresses in the last IP octet range (`X.X
 
 Make sure you install the dependencies from the supplied list. This step might be automated or deprecated in the future.
 
-Unfortunately I haven't found a way to include my API key in the app in a safe way, so for the time being you need to supply your own.
+Unfortunately I haven't found a way to safely include my API key in the app, so for the time being you need to supply your own (it is not needed to use most features of this tool though).
 For that reason you will need an account on https://www.shodan.io/. It is free and it should only take a moment to register.
 
 ## Usage
 
-* Launch the tool once (main.py).
-* The tool will create a `shodan_api_key.txt` file.
+Launch the tool (`main.py`) and follow the command line hints.
+
+**If you wish to use the Shodan check, follow these steps. The other functionalities can work without the key.**
+* Pick the Shodan option. A `shodan_api_key.txt` file will be created if one doesn't exist.
 * Paste your Shodan API key inside (you can copy it from the top of the website once you're logged in) and save the file.
-* If everything is correct, the tool will work correctly after relaunching.
-* Follow the command line hints.
+* If everything is correct, the Shodan check will work correctly without relaunching.
+* You don't need to relaunch the program to change the key, it is reloaded at runtime.
 
 ## Issues
 
