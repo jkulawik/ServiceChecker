@@ -199,8 +199,6 @@ def local_scan():
 
 
 def main():
-    # API loading is handled in the global scope on the top of the file.
-    # print(api.info())
 
     # Test hosts:
     # ip = '24.158.43.67'  # Test host - vulnerable
@@ -223,7 +221,6 @@ def main():
             # Get router IP
             # ipify is open source and free; no visitor information is logged.
             # ip = get('https://api.ipify.org').text # TODO uncomment for final release
-            print('\nYour public IP address is: {}'.format(ip))
             shodan_ip_check.check_shodan(ip)
         elif command == '2':
             print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
@@ -236,6 +233,7 @@ def main():
             simple_mail.send('Test', 'This is a test message content.')
         else:
             print('Wrong command.')
+        # input("\nPress Enter to go back to the menu...") # TODO flush the input buffer if this is to work
 
 
 if __name__ == "__main__":
