@@ -116,15 +116,32 @@ def get_lan_ip():
 def get_mac_details(mac_address):
     # Truncate address for security reasons
     vendor_string = mac_address[0:8]
-    print(vendor_string)
 
     # An API is used to get the vendor details
     url = "https://api.macvendors.com/"
 
     # Use get method to fetch details
     response = get(url + vendor_string).text
-    return response
 
+    #E.g: {"errors":{"detail":"Too Many Requests","message":"Please slow down...etc"}}
+    err1 = 'Too Many Requests'
+    err2 = 'Not Found'
+    if err1 in response:
+        return 'Error: ' + err1
+    elif err2 in response:
+        return err2
+    elif 'errors' in response:
+        return 'Error'
+    else:
+        return response
+
+
+# TODO use this to print ---- above the results table... or delete it
+def get_biggest_len(_list):
+    max_len = -1
+    for element in _list:
+        if len(element) > max_len:
+            max_len = len(element)
 
 
 # Check if given IP (string format) is a LAN IP:
@@ -153,6 +170,7 @@ def local_scan():
         ip_list = ping_sweep.get_ip_list(ipl)
         # TODO The scan takes too long for testing other things.
         #  Substitute with a direct list for now and remove it later
+        #ip_list = [ipl]
         #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
@@ -172,15 +190,14 @@ def local_scan():
             hostname = host_data[0]
             ports = get_ports(address, ip_ports)
             mac_addr = str(getmacbyip(address))
-            vendor = get_mac_details(mac_addr)
-
-            # TODO display vendor data
+            vendor = get_mac_details(mac_addr)  # TODO this needs to be rate-limited :(
 
             ip_data = [
                 ip_addr,
                 hostname,
                 ports,
-                mac_addr
+                mac_addr,
+                vendor
             ]
 
             data_list.append(ip_data)
@@ -189,11 +206,11 @@ def local_scan():
               'Your host might return ff:ff:ff:ff:ff:ff.\n')
 
         # Display hosts with found ports
-        print("{:<15} {:<20} {:<20} {}".format('IP', 'Name', 'MAC', 'List of open ports'))
-        print("{:<15} {:<20} {:<20} {}".format('-'*15, '-'*16, '-'*17, '-'*18))
+        print("{:<15} {:<20} {:<20} {:<35} {}".format('IP', 'Name', 'MAC', 'Vendor', 'List of open ports'))
+        print("{:<15} {:<20} {:<20} {:<35} {}".format('-'*15, '-'*16, '-'*17, '-'*30, '-'*18))
 
         for entry in data_list:
-            print("{:<15} {:<20} {:<20} {}".format(entry[0], entry[1], entry[3], entry[2]))
+            print("{:<15} {:<20} {:<20} {:<35} {}".format(entry[0], entry[1], entry[3], entry[4], entry[2]))
 
             if len(entry[2]) != 0:
                 open_ports_found = True

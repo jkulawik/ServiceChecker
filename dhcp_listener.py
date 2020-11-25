@@ -3,7 +3,10 @@
 Listen for DHCP packets using scapy to learn when LAN 
 hosts request IP addresses from DHCP Servers.
 Copyright (C) 2018 Jonathan Cutrer
+https://jcutrer.com/python/scapy-dhcp-listener
 License Dual MIT, 0BSD
+
+Extended by jkulawik, 2020
 """
 
 from __future__ import print_function
