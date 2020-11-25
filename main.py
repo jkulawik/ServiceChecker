@@ -9,16 +9,19 @@ import subprocess
 # Passive scan
 import dhcp_listener
 
-# Utilities
-import platform
+# LAN scan
 import socket  # To query the LAN
-socket.setdefaulttimeout(1.0) # This is for the scans to be faster
+import platform
+from scapy.layers.l2 import getmacbyip
 
+# Utilities
 from os import path
 import time
 import pprint
 
 # Initialisations
+socket.setdefaulttimeout(1.0)  # This is for the scans to be faster
+
 OP_SYS = platform.system()
 api_file = "shodan_api_key.txt"
 if not path.exists(api_file):
@@ -343,47 +346,59 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        # ip_list = ping_sweep(ipl)
+        ip_list = ping_sweep(ipl)
         # TODO The scan takes too long for testing other things.
         #  Substitute with a direct list for now and remove it later
-        ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+        #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
         # print(ip_list)
 
         data_list = []
         open_ports_found = False
+        open_ports = []
         ip_ports = scan_ports(ip_list)
 
         # Get host data
         for address in ip_list:
             host_data = socket.gethostbyaddr(address)
             # host_data structure is: (name, aliases, [IPs])
+            ports = get_ports(address, ip_ports)
+
             ip_data = []
             ip_data.append(host_data[2][0])  # [0] First IP
             ip_data.append(host_data[0])  # [1] Name
-
-            ports = get_ports(address,ip_ports)
             ip_data.append(ports)  # [2] Open ports (a list)
-            #ip_data.append([])  # TODO This is a substitute to disable port scanning for testing; remove this
+            ip_data.append(str(getmacbyip(address)))  # [3] MAC address
 
             data_list.append(ip_data)
 
+        print('\nNote: MAC address None might mean the host is offline at the moment.\n'
+              'Your host might return ff:ff:ff:ff:ff:ff.\n')
+
         # Display hosts with found ports
+        print("{:<15} {:<20} {:<20} {}".format('IP', 'Name', 'MAC', 'List of open ports'))
+        print("{:<15} {:<20} {:<20} {}".format('-'*15, '-'*16, '-'*17, '-'*18))
+
         for entry in data_list:
-            print("{}\t\t{}".format(entry[0], entry[1]))
+            print("{:<15} {:<20} {:<20} {}".format(entry[0], entry[1], entry[3], entry[2]))
 
             if len(entry[2]) != 0:
                 open_ports_found = True
-                print('├──This host has open ports:')
                 for port in entry[2]:
-                    print('├──{} ({})'.format(port, services.get(port)))
+                    if port not in open_ports:
+                        open_ports.append(port)
 
         if open_ports_found:
-            print('Ports belonging to potentially dangerous services have been found on one or more of '
+            print('\nPorts belonging to potentially dangerous services have been found on one or more of\n'
                   'the devices in your local network. Make sure to investigate and close or secure them.')
+
+            print('\nThe services on those ports are:')
+            for port in open_ports:
+                print('─ {} ({})'.format(port, services.get(port)))
+
         else:
-            print('No ports belonging to potentially dangerous services have been found.')
+            print('\nNo ports belonging to potentially dangerous services have been found.')
 
 # End port scan functions
 
