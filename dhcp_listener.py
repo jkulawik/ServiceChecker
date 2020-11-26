@@ -41,7 +41,6 @@ def log(message):
 
     file_name = str(date.today()) + '-log.txt'
     file_path = os.path.join(path, file_name)
-    print(file_path)
 
     file = open(file_path, "a")
     file.write(message + '\n')
@@ -83,40 +82,6 @@ def handle_dhcp_packet(packet):
         print_and_log(f"Unknown host {hostname} asked for an IP.")
         print_and_log(f'Host vendor: {mac_vendor.get_str(mac)}')
         print_and_log(f'Host MAC: {mac}')
-
-
-    # Match DHCP offer
-    elif DHCP in packet and packet[DHCP].options[0][1] == 2:
-        print('---')
-        print('New DHCP Offer')
-        #print(packet.summary())
-        #print(ls(packet))
-
-        subnet_mask = get_option(packet[DHCP].options, 'subnet_mask')
-        lease_time = get_option(packet[DHCP].options, 'lease_time')
-        router = get_option(packet[DHCP].options, 'router')
-        name_server = get_option(packet[DHCP].options, 'name_server')
-        domain = get_option(packet[DHCP].options, 'domain')
-
-        print(f"DHCP Server {packet[IP].src} ({packet[Ether].src}) "
-              f"offered {packet[BOOTP].yiaddr}")
-
-        print(f"DHCP Options: subnet_mask: {subnet_mask}, lease_time: "
-              f"{lease_time}, router: {router}, name_server: {name_server}, "
-              f"domain: {domain}")
-
-
-    # Match DHCP request
-    elif DHCP in packet and packet[DHCP].options[0][1] == 3:
-        print('---')
-        print('New DHCP Request')
-        #print(packet.summary())
-        #print(ls(packet))
-
-        requested_addr = get_option(packet[DHCP].options, 'requested_addr')
-        hostname = get_option(packet[DHCP].options, 'hostname')
-        print(f"Host {hostname} ({packet[Ether].src}) requested {requested_addr}")
-
 
     # Match DHCP ack
     elif DHCP in packet and packet[DHCP].options[0][1] == 5\
