@@ -20,6 +20,7 @@ from scapy.layers.dhcp import IP
 # Logging
 from datetime import date
 from inspect import getsourcefile
+import mac_vendor
 
 __version__ = "0.0.3"
 

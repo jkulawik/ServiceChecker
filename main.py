@@ -1,5 +1,4 @@
 # Internet interaction imports
-from requests import get  # Get external IP
 import shodan_ip_check
 
 # Ping sweep imports
@@ -13,6 +12,7 @@ import simple_mail  # For alerts
 import multiprocessing
 import socket
 from scapy.layers.l2 import getmacbyip
+import mac_vendor
 
 # Utilities
 import time
@@ -113,29 +113,6 @@ def get_lan_ip():
     return ip
 
 
-def get_mac_details(mac_address):
-    # Truncate address for security reasons
-    vendor_string = mac_address[0:8]
-
-    # An API is used to get the vendor details
-    url = "https://api.macvendors.com/"
-
-    # Use get method to fetch details
-    response = get(url + vendor_string).text
-
-    #E.g: {"errors":{"detail":"Too Many Requests","message":"Please slow down...etc"}}
-    err1 = 'Too Many Requests'
-    err2 = 'Not Found'
-    if err1 in response:
-        return 'Error: ' + err1
-    elif err2 in response:
-        return err2
-    elif 'errors' in response:
-        return 'Error'
-    else:
-        return response
-
-
 # TODO use this to print ---- above the results table... or delete it
 def get_biggest_len(_list):
     max_len = -1
@@ -167,10 +144,10 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        ip_list = ping_sweep.get_ip_list(ipl)
+        #ip_list = ping_sweep.get_ip_list(ipl)
         # TODO The scan takes too long for testing other things.
         #  Substitute with a direct list for now and remove it later
-        #ip_list = [ipl]
+        ip_list = [ipl]
         #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO sort the IPs
@@ -190,7 +167,7 @@ def local_scan():
             hostname = host_data[0]
             ports = get_ports(address, ip_ports)
             mac_addr = str(getmacbyip(address))
-            vendor = get_mac_details(mac_addr)  # TODO this needs to be rate-limited :(
+            vendor = mac_vendor.get_str(mac_addr)  # TODO this needs to be rate-limited :(
 
             ip_data = [
                 ip_addr,
