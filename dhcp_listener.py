@@ -21,13 +21,23 @@ from scapy.layers.dhcp import IP
 from datetime import date
 from inspect import getsourcefile
 import mac_vendor
+from scapy.layers.l2 import getmacbyip
+
 
 __version__ = "0.0.3"
+
+
+# print_and_log current time
+def pal_time():
+    todays_date = datetime.now()
+    curr_time = '\n{}:{}'.format(todays_date.hour, todays_date.minute)
+    print_and_log(curr_time)
 
 
 def print_and_log(message):
     print(message)
     log(message)
+
 
 def log(message):
     dir = 'logs'
@@ -71,7 +81,6 @@ def get_option(dhcp_options, key):
 def handle_dhcp_packet(packet):
 
     # Match DHCP discover
-    # TODO this message is suspicious
     if DHCP in packet and packet[DHCP].options[0][1] == 1:
         print('---')
         print('New DHCP Discover')
@@ -79,6 +88,8 @@ def handle_dhcp_packet(packet):
         #print(ls(packet))
         hostname = get_option(packet[DHCP].options, 'hostname')
         mac = packet[Ether].src
+
+        pal_time()
         print_and_log(f"Unknown host {hostname} asked for an IP.")
         print_and_log(f'Host vendor: {mac_vendor.get_str(mac)}')
         print_and_log(f'Host MAC: {mac}')
@@ -96,8 +107,17 @@ def handle_dhcp_packet(packet):
         router = get_option(packet[DHCP].options, 'router')
         name_server = get_option(packet[DHCP].options, 'name_server')
 
-        print(f"DHCP Server {packet[IP].src} ({packet[Ether].src}) "
-              f"acked {packet[BOOTP].yiaddr}")
+        server_mac = packet[Ether].src
+        server_ip = packet[IP].src
+
+        sus_ip = packet[BOOTP].yiaddr
+        sus_mac = str(getmacbyip(sus_ip))
+        sus_vendor = mac_vendor.get_str(sus_mac)
+
+        pal_time()
+        print_and_log(f"DHCP Server {server_ip} ({server_mac}) acked unknown device on IP {sus_ip}")
+        print_and_log(f'Unknown host vendor: {mac_vendor.get_str(sus_vendor)}')
+        print_and_log(f'Unknown host MAC: {sus_mac}\n')
 
         print(f"DHCP Options: subnet_mask: {subnet_mask}, lease_time: "
               f"{lease_time}, router: {router}, name_server: {name_server}")
@@ -127,6 +147,7 @@ def handle_dhcp_packet(packet):
 # This is just to use this script as a dependency
 def start_sniffing():
     print('Sniffing DHCP broadcasts...')
+    print('Press Ctrl+C to stop.')
     sniff(filter="udp and (port 67 or 68)", prn=handle_dhcp_packet)
 
 
