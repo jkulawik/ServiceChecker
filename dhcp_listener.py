@@ -25,6 +25,10 @@ import mac_vendor
 __version__ = "0.0.3"
 
 
+def print_and_log(message):
+    print(message)
+    log(message)
+
 def log(message):
     dir = 'logs'
     if not os.path.exists(dir):
@@ -75,7 +79,10 @@ def handle_dhcp_packet(packet):
         #print(packet.summary())
         #print(ls(packet))
         hostname = get_option(packet[DHCP].options, 'hostname')
-        print(f"Host {hostname} ({packet[Ether].src}) asked for an IP")
+        mac = packet[Ether].src
+        print_and_log(f"Unknown host {hostname} asked for an IP.")
+        print_and_log(f'Host vendor: {mac_vendor.get_str(mac)}')
+        print_and_log(f'Host MAC: {mac}')
 
 
     # Match DHCP offer
@@ -154,6 +161,7 @@ def handle_dhcp_packet(packet):
 
 # This is just to use this script as a dependency
 def start_sniffing():
+    print('Sniffing DHCP broadcasts...')
     sniff(filter="udp and (port 67 or 68)", prn=handle_dhcp_packet)
 
 
