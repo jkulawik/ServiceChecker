@@ -265,7 +265,9 @@ def main():
             dhcp_listener.start_sniffing()
         elif command == '4':
             #simple_mail.send('Test', 'This is a test message content.')
-            get_mac_details('d8:e0:e1')  # Already truncated for security reasons; full mac works though.
+            #get_mac_details('d8:e0:e1')  # Already truncated for security reasons; full mac works though.
+            dhcp_listener.log('mny test...')
+            #quit()
         else:
             print('Wrong command.')
         # input("\nPress Enter to go back to the menu...") # TODO flush the input buffer if this is to work

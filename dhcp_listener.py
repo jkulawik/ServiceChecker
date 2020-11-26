@@ -11,15 +11,36 @@ Extended by jkulawik, 2020
 
 from __future__ import print_function
 from scapy.all import *
-import time
 
 from scapy.layers.dhcp import DHCP
 from scapy.layers.dhcp import Ether
 from scapy.layers.dhcp import BOOTP
 from scapy.layers.dhcp import IP
 
+# Logging
+from datetime import date
+from inspect import getsourcefile
 
 __version__ = "0.0.3"
+
+
+def log(message):
+    dir = 'logs'
+    if not os.path.exists(dir):
+        # The folder gets created in the run directory automatically...
+        os.makedirs(dir)
+
+    # ...but for file writing a full path is needed
+    current_dir = os.path.dirname(getsourcefile(lambda:0))
+    path = os.path.join(current_dir, 'logs')
+
+    file_name = str(date.today()) + '-log.txt'
+    file_path = os.path.join(path, file_name)
+    print(file_path)
+
+    file = open(file_path, "a")
+    file.write(message + '\n')
+    file.close()
 
 
 # Fixup function to extract dhcp_options by key

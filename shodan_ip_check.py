@@ -40,7 +40,6 @@ def check_shodan(ip):
 
     try:
         ipinfo = api.host(ip)
-        #pprint.pprint(ipinfo)  # TODO remove this later
 
         port_data = ipinfo["data"]  # Info per port
 
