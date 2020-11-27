@@ -23,8 +23,9 @@ from inspect import getsourcefile
 import mac_vendor
 from scapy.layers.l2 import getmacbyip
 
+whitelist_file = 'MAC_whitelist.txt'
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 # print_and_log current time
@@ -34,11 +35,18 @@ def pal_time():
     print_and_log(curr_time)
 
 
+def check_whitelist(mac):
+    with open(whitelist_file, 'r') as file:
+        whitelist = file.read()
+    return mac in whitelist
+
+
 def print_and_log(message):
     print(message)
     log(message)
 
 
+# Print a message into today's log in /logs
 def log(message):
     dir = 'logs'
     if not os.path.exists(dir):
@@ -89,6 +97,12 @@ def handle_dhcp_packet(packet):
         hostname = get_option(packet[DHCP].options, 'hostname')
         mac = packet[Ether].src
 
+        if check_whitelist(mac):
+            print(f'Whitelisted host {hostname} asked for an IP.')
+            print(f'Host vendor: {mac_vendor.get_str(mac)}')
+            print(f'Host MAC: {mac}')
+            return
+
         pal_time()
         print_and_log(f"Unknown host {hostname} asked for an IP.")
         print_and_log(f'Host vendor: {mac_vendor.get_str(mac)}')
@@ -114,8 +128,14 @@ def handle_dhcp_packet(packet):
         sus_mac = str(getmacbyip(sus_ip))
         sus_vendor = mac_vendor.get_str(sus_mac)
 
+        if check_whitelist(sus_mac):
+            print(f"DHCP Server {server_ip} ({server_mac}) acknowledged a whitelisted device on IP {sus_ip}")
+            print(f'Host vendor: {mac_vendor.get_str(sus_vendor)}')
+            print(f'Host MAC: {sus_mac}\n')
+            return
+
         pal_time()
-        print_and_log(f"DHCP Server {server_ip} ({server_mac}) acked unknown device on IP {sus_ip}")
+        print_and_log(f"DHCP Server {server_ip} ({server_mac}) acknowledged unknown device on IP {sus_ip}")
         print_and_log(f'Unknown host vendor: {mac_vendor.get_str(sus_vendor)}')
         print_and_log(f'Unknown host MAC: {sus_mac}\n')
 
@@ -139,13 +159,17 @@ def handle_dhcp_packet(packet):
         print('---')
         print('Some Other DHCP Packet')
         print(packet.summary())
-        print(ls(packet))
+        #print(ls(packet))
 
     return
 
 
 # This is just to use this script as a dependency
 def start_sniffing():
+    # Create MAC whitelist
+    if not os.path.exists(whitelist_file):
+        open(whitelist_file, "w+")
+
     print('Sniffing DHCP broadcasts...')
     print('Press Ctrl+C to stop.')
     sniff(filter="udp and (port 67 or 68)", prn=handle_dhcp_packet)

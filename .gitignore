@@ -128,3 +128,5 @@ shodan_api_key.txt
 dhcp_examples.txt
 
 logs/
+
+MAC_whitelist.txt
