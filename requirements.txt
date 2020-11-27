@@ -1,0 +1,8 @@
+
+# Libraries required to make the tool work
+# Install with this command: pip install -r requirements.txt
+# or by executing the .sh or .bat scripts.
+# On Windows, you can just click the Install.bat file.
+
+shodan
+scapy

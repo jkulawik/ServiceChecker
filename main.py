@@ -150,6 +150,8 @@ def local_scan():
         ip_list = [ipl]
         #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
+        # TODO make ping sweep optional to scan devices that don't support ping
+
         # TODO sort the IPs
         # print(ip_list)
 

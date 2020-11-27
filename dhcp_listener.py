@@ -46,7 +46,7 @@ def log(message):
         os.makedirs(dir)
 
     # ...but for file writing a full path is needed
-    current_dir = os.path.dirname(getsourcefile(lambda:0))
+    current_dir = os.path.dirname(getsourcefile(lambda: 0))
     path = os.path.join(current_dir, 'logs')
 
     file_name = str(date.today()) + '-log.txt'
