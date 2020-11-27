@@ -56,7 +56,14 @@ If you wish to use the Shodan check, follow these steps to add a Shodan API key.
 
 The scanner creates separate logs for each day in the `/logs` folder.
 
-Run the DHCP scanner once to create a `MAC_whitelist.txt` file. Put MAC addresses there line by line. They won't show up in logs. The list is read on the fly, so you don't need to restart the program to add new addresses.
+Run the DHCP scanner once to create a `MAC_whitelist.txt` file. Put MAC addresses there line by line. They won't show up in logs. The list is read on the fly, so you don't need to restart the program to add new addresses. The file can contain other text, so you can make comments. There is no need to use any syntax, although I used `#` in this example:
+
+```
+# Phone:
+40:XX:db:XX:XX:XX
+# Laptop:
+c8:XX:00:XX:XX:XX
+```
 
 Some devices refresh IPs from time to time, and some devices will attempt to connect without your knowledge to e.g. connect to a manufacturer server, so you might find the whitelist useful.
 
