@@ -21,31 +21,48 @@ and hence can currently only scan the addresses in the last IP octet range (`X.X
     * SSH
     * HTTP-XML authentication (planned?)
   * [PLANNED?] Check for default credentials on those services
-* Passive DHCP scanner that will let you monitor network access attempts. It creates separate logs for each day and has a planned feature of whitelisting devices (some devices refresh IPs from time to time, and some devices will attempt to connect without your knowledge to e.g. connect to a manufacturer server). DHCP uses broadcasting, which means that this scanner only has to listen and doesn't use up your bandwidth at all.
+* Passive DHCP scanner that will let you monitor network access attempts. It features logging to text files and a MAC whitelist.
 
 ## Disclaimers
 
 This tool makes use of `shodan.io`, `ipify.org` and `macvendors.com` APIs.
 * Shodan is a service which scans all IPs for vulnerabilities and open ports. Querying it does not pose any danger, as they have that data already.
-* Ipify is used to get your public IP address, which a regular activity done by all websites. It is open source and free. No visitor information is logged.
+* Ipify is used to get your public IP address, which is a regular activity done by all websites. It is open source and free. No visitor information is logged.
 * MACVendors is a service which returns the manufacturer of a given MAC address. Since MAC precisely identifies a device, only a half of it is sent for privacy reasons. That half is sufficient and only suitable for vendor identification. It should not be a privacy risk at all, but keep that in mind.
+
+Currently the LAN scan feature scans quite aggressively. You might experience some slow-downs, especially on the scanning device. Also be aware that this can potentially raise alarms in network security systems, if your LAN has one.
 
 ## Prerequisites
 
-Make sure you install the dependencies from the supplied list. This step might be automated or deprecated in the future.
+Use the command: `pip install -r requirements.txt` to install the dependencies. On Windows you can also execute the `Install.bat` file instead.
 
-Unfortunately I haven't found a way to safely include my API key in the app, so for the time being you need to supply your own (it is not needed to use most features of this tool though).
+Unfortunately I haven't found a way to safely include my Shodan API key in the app, so for the time being you need to supply your own (it is not needed to use most features of this tool though).
 For that reason you will need an account on https://www.shodan.io/. It is free and it should only take a moment to register.
 
 ## Usage
 
 Launch the tool (`main.py`) and follow the command line hints.
 
-**If you wish to use the Shodan check, follow these steps. The other functionalities can work without the key.**
+### Using the Shodan look-up
+
+If you wish to use the Shodan check, follow these steps to add a Shodan API key. The other functionalities can work without the key.
+
 * Pick the Shodan option. A `shodan_api_key.txt` file will be created if one doesn't exist.
 * Paste your Shodan API key inside (you can copy it from the top of the website once you're logged in) and save the file.
 * If everything is correct, the Shodan check will work correctly without relaunching.
 * You don't need to relaunch the program to change the key, it is reloaded at runtime.
+
+### Using the DHCP scanner
+
+The scanner creates separate logs for each day in the `/logs` folder.
+
+Run the DHCP scanner once to create a `MAC_whitelist.txt` file. Put MAC addresses there line by line. They won't show up in logs.
+
+Some devices refresh IPs from time to time, and some devices will attempt to connect without your knowledge to e.g. connect to a manufacturer server, so you might find the whitelist useful.
+
+DHCP uses broadcasting, which means that this scanner only has to listen and doesn't use up your bandwidth at all. You should be able to leave it running without a big footprint - or start it when you connect a new device to see it connecting. If the device is still connected to the LAN, you can use the LAN scanner feature to check the device for open ports.
+
+Note: Devices which already are connected will not show in the logs, as they already have their IPs in the LAN. Reconnecting devices should show up, however.
 
 ## Issues
 
