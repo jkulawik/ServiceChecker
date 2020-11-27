@@ -21,6 +21,14 @@ and hence can currently only scan the addresses in the last IP octet range (`X.X
     * SSH
     * HTTP-XML authentication (planned?)
   * [PLANNED?] Check for default credentials on those services
+* Passive DHCP scanner that will let you monitor network access attempts. It creates separate logs for each day and has a planned feature of whitelisting devices (some devices refresh IPs from time to time, and some devices will attempt to connect without your knowledge to e.g. connect to a manufacturer server). DHCP uses broadcasting, which means that this scanner only has to listen and doesn't use up your bandwidth at all.
+
+## Disclaimers
+
+This tool makes use of `shodan.io`, `ipify.org` and `macvendors.com` APIs.
+* Shodan is a service which scans all IPs for vulnerabilities and open ports. Querying it does not pose any danger, as they have that data already.
+* Ipify is used to get your public IP address, which a regular activity done by all websites. It is open source and free. No visitor information is logged.
+* MACVendors is a service which returns the manufacturer of a given MAC address. Since MAC precisely identifies a device, only a half of it is sent for privacy reasons. That half is sufficient and only suitable for vendor identification. It should not be a privacy risk at all, but keep that in mind.
 
 ## Prerequisites
 
