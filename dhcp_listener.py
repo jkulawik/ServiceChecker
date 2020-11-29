@@ -27,9 +27,13 @@ whitelist_file = 'MAC_whitelist.txt'
 
 __version__ = "0.0.4"
 
+
 def add_zero_to_time(time):
     if time < 10:
         return '0'+ time
+    else:
+        return time
+
 
 # print_and_log current time
 def pal_time():

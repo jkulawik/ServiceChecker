@@ -144,10 +144,10 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        #ip_list = ping_sweep.get_ip_list(ipl)
+        ip_list = ping_sweep.get_ip_list(ipl)
         # TODO The scan takes too long for testing other things.
         #  Substitute with a direct list for now and remove it later
-        ip_list = [ipl]
+        #ip_list = [ipl]
         #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
         # TODO make ping sweep optional to scan devices that don't support ping
@@ -245,6 +245,7 @@ def main():
         elif command == '4':
             #simple_mail.send('Test', 'This is a test message content.')
             #get_mac_details('d8:e0:e1')  # Already truncated for security reasons; full mac works though.
+            dhcp_listener.pal_time()
             dhcp_listener.log('mny test...')
             #quit()
         else:
