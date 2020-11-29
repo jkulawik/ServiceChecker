@@ -27,11 +27,16 @@ whitelist_file = 'MAC_whitelist.txt'
 
 __version__ = "0.0.4"
 
+def add_zero_to_time(time):
+    if time < 10:
+        return '0'+ time
 
 # print_and_log current time
 def pal_time():
     todays_date = datetime.now()
-    curr_time = '\n{}:{}'.format(todays_date.hour, todays_date.minute)
+    hour = add_zero_to_time(todays_date.hour)
+    minute = add_zero_to_time(todays_date.minute)
+    curr_time = '\n{}:{}'.format(hour, minute)
     print_and_log(curr_time)
 
 
