@@ -1,8 +1,12 @@
 
 from requests import get
+import time
+import config
 
 
 def get_str(mac_address):
+    if config.limit_vendor_requests:
+        time.sleep(0.501)  # This had to be done to not be rate-limited
 
     # Truncate address for security reasons
     vendor_string = mac_address[0:8]
@@ -21,6 +25,10 @@ def get_str(mac_address):
     elif err2 in response:
         return err2
     elif 'errors' in response:
-        return 'Error'
+        return 'Unknown Error'
     else:
+        if config.truncate_vendors:
+            if len(response) > 30:
+                response = response[0:29]
+                response += '-'
         return response

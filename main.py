@@ -101,7 +101,6 @@ def get_ports(ip, ip_ports):
 def get_lan_ip():
     # TODO ensure this uses the correct interface and not smth virtual
     host_name = socket.gethostname()
-    print(host_name)
     ip = socket.gethostbyname(host_name)
     return ip
 
@@ -210,7 +209,7 @@ def local_scan():
                         open_ports.append(port)
 
         if open_ports_found:
-            print('\nPorts belonging to potentially dangerous services have been found on one or more of\n'
+            print('\nPorts belonging to potentially vulnerable services have been found on one or more of\n'
                   'the devices in your local network. Make sure to investigate and close or secure them.')
 
             print('\nThe services on those ports are:')
