@@ -19,10 +19,12 @@ services = {
 
 # Set this to true to skip the ping sweep and use your preferred IPs
 # (for example when you know some host is in the network but it doesn't respond to pings)
-manual_ip_list = False
+custom_ips = True
 
 # If the above is set to True, the tool uses this list:
-manual_ips = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+manual_ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+
+max_threads = 25
 
 # ===========MISC SETTINGS==========
 

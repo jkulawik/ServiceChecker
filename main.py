@@ -133,13 +133,14 @@ def local_scan():
     if ip_check_local(ipl) is False:
         print('Your address does not appear to be from a local network. Aborting scan.')
     else:
-        print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
-              'subnet).')
 
-        if config.manual_ip_list:
-            ip_list = ping_sweep.get_ip_list(ipl)
+        if config.custom_ips:
+            print('Scanning manually entered IPs.')
+            ip_list = config.manual_ip_list
         else:
-            ip_list = config.manual_ips
+            print('Note: currently the program can only scan the addresses '
+                  'in the last IP octet range (like in a /24 subnet).')
+            ip_list = ping_sweep.get_ip_list(ipl)
 
         # print(ip_list)
 
