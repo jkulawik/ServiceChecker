@@ -22,7 +22,7 @@ import pprint
 
 # Initialisations
 services = config.services
-socket.setdefaulttimeout(config.ping_timeout)  # This is for the scans to be faster
+socket.setdefaulttimeout(config.port_timeout)  # This is for the scans to be faster
 # End initialisations
 
 
@@ -92,7 +92,7 @@ def scan_ports(ip_list):
 # Example: Takes a list of elements like this: ['192.168.1.32', [21, 22, 23]]
 # and returns [21, 22, 23]
 def get_ports(ip, ip_ports):
-    # This isn't very efficient, but has to do for now...
+    # This could be faster, but isn't affecting the performance too much
     for entry in ip_ports:
         if ip in entry:
             return entry[1]
@@ -100,7 +100,9 @@ def get_ports(ip, ip_ports):
 
 def get_lan_ip():
     # TODO ensure this uses the correct interface and not smth virtual
-    ip = socket.gethostbyname(socket.gethostname())
+    host_name = socket.gethostname()
+    print(host_name)
+    ip = socket.gethostbyname(host_name)
     return ip
 
 
@@ -149,17 +151,16 @@ def local_scan():
 
         if config.skip_ping_sweep:
             print('Skipping ping sweep.')
-            ip_list = generate_ips(ipl)
+            #ip_list = generate_ips(ipl)
+            ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+            # ip_list = [ipl]
         else:
             ip_list = ping_sweep.get_ip_list(ipl)
-        # TODO The scan takes too long for testing other things.
-        #  Substitute with a direct list for now and remove it later
-        #ip_list = [ipl]
-        #ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+
+
 
         # TODO make ping sweep optional to scan devices that don't support ping
 
-        # TODO sort the IPs
         # print(ip_list)
 
         data_list = []
@@ -168,6 +169,8 @@ def local_scan():
         ip_ports = scan_ports(ip_list)
 
         # Get host data
+        print('Acquiring host data...')
+        start_time = time.time()
         for address in ip_list:
             host_data = socket.gethostbyaddr(address)
             # host_data structure is: (name, aliases, [IPs])
@@ -187,6 +190,9 @@ def local_scan():
             ]
 
             data_list.append(ip_data)
+
+        print("Duration: {} seconds".format(time.time() - start_time))
+        # TODO sort this table
 
         print('\nNote: Your host might return ff:ff:ff:ff:ff:ff.\n')
 

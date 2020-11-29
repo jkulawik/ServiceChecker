@@ -62,7 +62,7 @@ def get_ip_list(ip):
     octets = ip.split('.')
     net_prefix = octets[0] + '.' + octets[1] + '.' + octets[2]
 
-    print('Scanning local network...')
+    print('Scanning local network. This might take a minute...')
 
     jobs = multiprocessing.Queue()
     results = multiprocessing.Queue()

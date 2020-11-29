@@ -9,7 +9,7 @@ skip_ping_sweep = False
 # It will slow down the scan, however.
 # Give time in seconds
 
-port_timeout = 0.1
+port_timeout = 0.05
 
 
 # ===========PORT SCAN SETTINGS==========
@@ -21,6 +21,7 @@ services = {
     22: 'SSH',
     23: 'Telnet',
     69: 'Trivial FTP',
+    80: 'HTTP',
     2121: 'FTP (unofficial port)',
     2222: 'SSH (unofficial port)',
     2323: 'Telnet (unofficial port)',
