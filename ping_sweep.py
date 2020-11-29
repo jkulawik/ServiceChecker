@@ -55,9 +55,9 @@ Returns a list of active hosts.
 
 def get_ip_list(ip):
     start_time = time.time()
-    pool_size = 51  # Number of threads
+    pool_size = config.ping_threads  # Number of threads
     # Default was 255 = 1 thread per address.
-    # Kinda heavy, so instead it's 51 threads, 5 addresses each
+    # Fewer threads turns out to be faster
 
     octets = ip.split('.')
     net_prefix = octets[0] + '.' + octets[1] + '.' + octets[2]
