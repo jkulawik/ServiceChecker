@@ -10,6 +10,7 @@ import subprocess
 import multiprocessing
 import time
 import platform
+import config
 
 # Init
 OP_SYS = platform.system()

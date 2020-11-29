@@ -21,8 +21,8 @@ import pprint
 
 
 # Initialisations
-socket.setdefaulttimeout(1.0)  # This is for the scans to be faster
 services = config.services
+socket.setdefaulttimeout(config.ping_timeout)  # This is for the scans to be faster
 # End initialisations
 
 
