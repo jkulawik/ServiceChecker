@@ -125,18 +125,6 @@ def ip_check_local(ipl):
         return True
 
 
-# This is a substitute for ping sweep
-# Takes an IP and generates a list with the assumption of the net being /24
-def generate_ips(ip):
-    octets = ip.split('.')
-    net_prefix = octets[0] + '.' + octets[1] + '.' + octets[2]
-
-    ip_list = []
-    for i in range(1, 255):
-        ip_list.append(net_prefix+'.{}'.format(i))
-    return ip_list
-
-
 def local_scan():
     ipl = get_lan_ip()  # Local IP
 
@@ -148,17 +136,10 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        if config.skip_ping_sweep:
-            print('Skipping ping sweep.')
-            #ip_list = generate_ips(ipl)
-            ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
-            # ip_list = [ipl]
-        else:
+        if config.manual_ip_list:
             ip_list = ping_sweep.get_ip_list(ipl)
-
-
-
-        # TODO make ping sweep optional to scan devices that don't support ping
+        else:
+            ip_list = config.manual_ips
 
         # print(ip_list)
 
@@ -171,17 +152,20 @@ def local_scan():
         print('Acquiring host data...')
         start_time = time.time()
         for address in ip_list:
-            host_data = socket.gethostbyaddr(address)
-            # host_data structure is: (name, aliases, [IPs])
-
-            ip_addr = host_data[2][0]
-            hostname = host_data[0]
             ports = get_ports(address, ip_ports)
+            hostname = 'Host may be down'
+
+            try:
+                host_data = socket.gethostbyaddr(address)
+                hostname = host_data[0]  # host_data structure is: (name, aliases, [IPs])
+            except:
+                pass
+
             mac_addr = str(getmacbyip(address))
-            vendor = mac_vendor.get_str(mac_addr)  # TODO this needs to be rate-limited :(
+            vendor = mac_vendor.get_str(mac_addr)
 
             ip_data = [
-                ip_addr,
+                address,
                 hostname,
                 ports,
                 mac_addr,
