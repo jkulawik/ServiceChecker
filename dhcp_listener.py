@@ -82,7 +82,7 @@ def get_option(dhcp_options, key):
         for i in dhcp_options:
             if i[0] == key:
                 # If DHCP Server Returned multiple name servers 
-                # return all as comma seperated string.
+                # return all as comma separated string.
                 if key == 'name_server' and len(i) > 2:
                     return ",".join(i[1:])
                 # domain and hostname are binary strings,

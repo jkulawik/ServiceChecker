@@ -3,6 +3,7 @@ from requests import get
 
 
 def get_str(mac_address):
+
     # Truncate address for security reasons
     vendor_string = mac_address[0:8]
 

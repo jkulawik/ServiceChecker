@@ -59,7 +59,7 @@ def get_ip_list(ip):
     # Kinda heavy, so instead it's 51 threads, 5 addresses each
 
     octets = ip.split('.')
-    net_prefix = octets[0] + '.' + octets[1]+ '.' + octets[2]
+    net_prefix = octets[0] + '.' + octets[1] + '.' + octets[2]
 
     print('Scanning local network...')
 
@@ -68,7 +68,7 @@ def get_ip_list(ip):
 
     # Create pool_size of threads, put them in the pool
     pool = [multiprocessing.Process(target=pinger, args=(jobs, results))
-                for i in range(pool_size)]
+            for i in range(pool_size)]
 
     # Start the threads
     for p in pool:
@@ -97,4 +97,3 @@ def get_ip_list(ip):
     print('Ping sweep finished.')
     print("Scan duration: {} seconds".format(time.time() - start_time))
     return ip_list
-

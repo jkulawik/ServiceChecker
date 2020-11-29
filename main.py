@@ -13,6 +13,7 @@ import multiprocessing
 import socket
 from scapy.layers.l2 import getmacbyip
 import mac_vendor
+import config
 
 # Utilities
 import time
@@ -21,6 +22,7 @@ import pprint
 
 # Initialisations
 socket.setdefaulttimeout(1.0)  # This is for the scans to be faster
+services = config.services
 # End initialisations
 
 
@@ -29,17 +31,6 @@ def print_type(arg):
     print("Data type: {}".format(type(arg)))
 
 # Port scan functions
-
-
-services = {
-    21: 'FTP',
-    22: 'SSH',
-    23: 'Telnet',
-    69: 'Trivial FTP',
-    2121: 'FTP (unofficial port)',
-    2222: 'SSH (unofficial port)',
-    2323: 'Telnet (unofficial port)',
-}
 
 
 # Thread job
@@ -133,6 +124,18 @@ def ip_check_local(ipl):
         return True
 
 
+# This is a substitute for ping sweep
+# Takes an IP and generates a list with the assumption of the net being /24
+def generate_ips(ip):
+    octets = ip.split('.')
+    net_prefix = octets[0] + '.' + octets[1] + '.' + octets[2]
+
+    ip_list = []
+    for i in range(1, 255):
+        ip_list.append(net_prefix+'.{}'.format(i))
+    return ip_list
+
+
 def local_scan():
     ipl = get_lan_ip()  # Local IP
 
@@ -144,7 +147,11 @@ def local_scan():
         print('Note: currently the program can only scan the addresses in the last IP octet range (like in a /24 '
               'subnet).')
 
-        ip_list = ping_sweep.get_ip_list(ipl)
+        if config.skip_ping_sweep:
+            print('Skipping ping sweep.')
+            ip_list = generate_ips(ipl)
+        else:
+            ip_list = ping_sweep.get_ip_list(ipl)
         # TODO The scan takes too long for testing other things.
         #  Substitute with a direct list for now and remove it later
         #ip_list = [ipl]
@@ -181,8 +188,7 @@ def local_scan():
 
             data_list.append(ip_data)
 
-        print('\nNote: MAC address None might mean the host is offline at the moment.\n'
-              'Your host might return ff:ff:ff:ff:ff:ff.\n')
+        print('\nNote: Your host might return ff:ff:ff:ff:ff:ff.\n')
 
         # Display hosts with found ports
         print("{:<15} {:<20} {:<20} {:<35} {}".format('IP', 'Name', 'MAC', 'Vendor', 'List of open ports'))
