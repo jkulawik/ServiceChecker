@@ -34,14 +34,15 @@ def print_type(arg):
 
 
 # Thread job
-def port_scan(job_q, results_q):
+def port_scan(job_q, results_q, service_dict):
     while True:
         ip = job_q.get()
         if ip is None:
             break
 
         open_ports = []
-        ports = list(services.keys())
+        # This needs to be passed as an argument to use the same instance in each thread
+        ports = list(service_dict.keys())
 
         for port in ports:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -64,7 +65,7 @@ def scan_ports(ip_list):
     jobs = multiprocessing.Queue()
     results = multiprocessing.Queue()
 
-    pool = [multiprocessing.Process(target=port_scan, args=(jobs, results))
+    pool = [multiprocessing.Process(target=port_scan, args=(jobs, results, services))
             for i in range(pool_size)]
     for p in pool:
         p.start()
@@ -230,19 +231,30 @@ def main():
             # Get router IP
             # ipify is open source and free; no visitor information is logged.
             # ip = get('https://api.ipify.org').text # TODO uncomment for final release
-            shodan_ip_check.check_shodan(ip)
+            new_ports = shodan_ip_check.check_shodan(ip)
+
+            # Adding the detected ports to the scan list:
+            for port in new_ports:
+                if port not in services:
+                    services.update({port: 'Port detected on Shodan'})
+                    #config.services[port] = 'Port detected on Shodan'
         elif command == '2':
             print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
-            # TODO give the choice to add shodan ports?
             #input("\nPress Enter to continue...")
             local_scan()
         elif command == '3':
             dhcp_listener.start_sniffing()
         elif command == '4':
+            # Mail tests
             #simple_mail.send('Test', 'This is a test message content.')
             #get_mac_details('d8:e0:e1')  # Already truncated for security reasons; full mac works though.
-            dhcp_listener.pal_time()
-            dhcp_listener.log('mny test...')
+
+            # Listener log tests
+            #dhcp_listener.pal_time()
+            #dhcp_listener.log('mny test...')
+
+            # Service list test
+            pprint.pprint(services)
             #quit()
         else:
             print('Wrong command.')

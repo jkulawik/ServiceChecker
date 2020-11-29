@@ -23,6 +23,7 @@ def get_cvss_severity(score):
 
 
 # The main function of the file
+# Returns open ports
 def check_shodan(ip):
     if not path.exists(api_file):
         open(api_file, "w+")
@@ -120,6 +121,7 @@ def check_shodan(ip):
                     print('│\t\t│\t├──{}'.format(vuln_data['summary']))
                     # vuln_data['references'] # This is a list
                     # vuln_data['summary']
+        return ipinfo["ports"]
 
     except Exception as exc:
         info = exc.__dict__
@@ -129,4 +131,5 @@ def check_shodan(ip):
         else:
             print("Exception", exc.__class__, "occurred.")
             print(info["value"])
+
 # END SHODAN SEARCH FUNCTION
