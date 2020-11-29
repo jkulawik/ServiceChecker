@@ -14,13 +14,10 @@ Features:
   * The tool presumes a /24 subnet mask (due to considerable issues with getting the network mask via Python),
 and hence can currently only scan the addresses in the last IP octet range (`X.X.X.1` - `X.X.X.255`). It should be sufficient for standard home networks, however.
   * The tool then does a ping sweep to find active hosts in the network (please note that not all devices are pingable at all times - e.g. Android phones put the Wifi to sleep for battery saving and might not respond consistently. This means they will be skipped in the port scan later, too).
-  * Check and display the host names to make them easier to identify.
-  * Scan for open ports (which hint at vulnerable services running):
-    * Telnet
-    * FTP
-    * SSH
-    * HTTP-XML authentication (planned?)
-  * [PLANNED?] Check for default credentials on those services
+  * It is also possible to scan IPs from a list.
+  * Check and display the host names, MAC addresses and vendors to make devices easier to identify.
+  * Scan for open ports (which hint at potentially vulnerable services running). The port list is configurable, but most common and dangerous ones are supplied.
+* [PLANNED?] Check for default credentials on chosen services
 * Passive DHCP scanner that will let you monitor network access attempts. It features logging to text files and a MAC whitelist.
 
 ## Disclaimers
@@ -43,6 +40,12 @@ For that reason you will need an account on https://www.shodan.io/. It is free a
 
 Launch the tool (`main.py`) and follow the command line hints.
 
+### Configuration
+
+You can edit certain parameters (the port scan list, most importantly) in the `config.py` file. The program might need a restart to register changes in that file.
+
+Open it for more data, each parameter is commented.
+
 ### Using the Shodan look-up
 
 If you wish to use the Shodan check, follow these steps to add a Shodan API key. The other functionalities can work without the key.
@@ -51,6 +54,8 @@ If you wish to use the Shodan check, follow these steps to add a Shodan API key.
 * Paste your Shodan API key inside (you can copy it from the top of the website once you're logged in) and save the file.
 * If everything is correct, the Shodan check will work correctly without relaunching.
 * You don't need to relaunch the program to change the key, it is reloaded at runtime.
+
+If any ports are detected by Shodan that aren't in the service list, they will get added to the LAN scan list. This happens during runtime, so they won't be in the list when you relaunch the tool.
 
 ### Using the DHCP scanner
 
