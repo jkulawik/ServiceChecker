@@ -1,18 +1,18 @@
 # Internet interaction imports
-import shodan_ip_check
+from sc_utils import shodan_ip_check
 
 # Ping sweep imports
-import ping_sweep
+from sc_utils import ping_sweep
 
 # Passive scan
-import dhcp_listener
-import simple_mail  # For alerts
+from sc_utils import dhcp_listener
+from sc_utils import simple_mail  # For alerts
 
 # LAN scan
 import multiprocessing
 import socket
 from scapy.layers.l2 import getmacbyip
-import mac_vendor
+from sc_utils import mac_vendor
 import config
 
 # Utilities
@@ -177,7 +177,7 @@ def local_scan():
             data_list.append(ip_data)
 
         print("Duration: {} seconds".format(time.time() - start_time))
-        # TODO sort this table
+        # TODO sort the data_list
 
         print('\nNote: Your host might return ff:ff:ff:ff:ff:ff.\n')
 
@@ -240,7 +240,6 @@ def main():
                     #config.services[port] = 'Port detected on Shodan'
         elif command == '2':
             print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
-            #input("\nPress Enter to continue...")
             local_scan()
         elif command == '3':
             dhcp_listener.start_sniffing()

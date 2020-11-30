@@ -20,7 +20,7 @@ from scapy.layers.dhcp import IP
 # Logging
 from datetime import date
 from inspect import getsourcefile
-import mac_vendor
+from sc_utils import mac_vendor
 from scapy.layers.l2 import getmacbyip
 
 whitelist_file = 'MAC_whitelist.txt'
