@@ -117,6 +117,7 @@ def check_shodan(ip):
                     print('│\t\t│\t├──Severity score (CVSS standard): {}/10'.format(score))
                     print('│\t\t│\t├──{}'.format(get_cvss_severity(score)))
                     print('│\t\t│\t├──Summary: ')  # TODO This needs better formatting
+                    # TODO Log this data instead? the references too
                     # pprint.pprint(vuln_data['summary'])
                     print('│\t\t│\t├──{}'.format(vuln_data['summary']))
                     # vuln_data['references'] # This is a list

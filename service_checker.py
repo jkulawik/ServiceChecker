@@ -155,6 +155,7 @@ def local_scan():
         start_time = time.time()
         for address in ip_list:
             ports = get_ports(address, ip_ports)
+            ports.sort()
             hostname = 'Host may be down'
 
             try:
@@ -197,6 +198,8 @@ def local_scan():
         if open_ports_found:
             print('\nPorts belonging to potentially vulnerable services have been found on one or more of\n'
                   'the devices in your local network. Make sure to investigate and close or secure them.')
+
+            open_ports.sort()
 
             print('\nThe services on those ports are:')
             for port in open_ports:
