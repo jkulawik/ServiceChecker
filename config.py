@@ -14,10 +14,12 @@ services = {
     69: 'Trivial FTP',
     80: 'HTTP',
     443: 'HTTPS',
+    1900: 'SSDP (might indicate the presence of UPnP)',
     2121: 'FTP (unofficial port)',
     2222: 'SSH (unofficial port)',
     2323: 'Telnet (unofficial port)',
     2332: 'Telnet (unofficial port)',
+    5000: 'Multiple protocols use this port - might be UPnP or something else',
 }
 
 # Set this to true to skip the ping sweep and use your preferred IPs
