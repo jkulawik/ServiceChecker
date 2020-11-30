@@ -9,14 +9,10 @@ Features:
   * Lists ports visible to the outside world
   * Tries to identify the services running on them
   * Lists vulnerabilities found based on software versions and data about them
-* Scan the local network
-  * The tool determines your local IP to find your network prefix.
-  * The tool presumes a /24 subnet mask (due to considerable issues with getting the network mask via Python),
-and hence can currently only scan the addresses in the last IP octet range (`X.X.X.1` - `X.X.X.255`). It should be sufficient for standard home networks, however.
-  * The tool then does a ping sweep to find active hosts in the network (please note that not all devices are pingable at all times - e.g. Android phones put the Wifi to sleep for battery saving and might not respond consistently. This means they will be skipped in the port scan later, too).
-  * It is also possible to scan IPs from a list.
-  * Check and display the host names, MAC addresses and vendors to make devices easier to identify.
-  * Scan for open ports (which hint at potentially vulnerable services running). The port list is configurable, but most common and dangerous ones are supplied.
+* Local network scanner
+  * Finds running devices
+  * Checks and displays the host names, IPs, MAC addresses and vendors to make devices easier to identify.
+  * Scans for open ports (which hint at potentially vulnerable services running). The port list is configurable, but most common and dangerous ones are listed out-of-the-box.
 * [PLANNED?] Check for default credentials on chosen services
 * Passive DHCP scanner that will let you monitor network access attempts. It features logging to text files and a MAC whitelist.
 
@@ -57,6 +53,14 @@ If you wish to use the Shodan check, follow these steps to add a Shodan API key.
 
 If any ports are detected by Shodan that aren't in the service list, they will get added to the LAN scan list. This happens during runtime, so they won't be in the list when you relaunch the tool.
 
+### Using the LAN scanner
+
+Please be aware of the limitations caused by how this tool works:
+* The tool determines your local IP and assumes a /24 subnet mask (due to considerable issues with getting the network mask via Python)
+* Hence it can currently only scan the addresses in the last IP octet range (`X.X.X.1` - `X.X.X.255`). It should be sufficient for standard home networks, however.
+* The tool then does a ping sweep to find active hosts in the network. Not all devices are pingable at all times - e.g. Android phones put the Wifi to sleep for battery saving and might not respond consistently. Some devices aren't pingable at all. **Note that devices which don't respond to ping won't be scanned.**
+* To combat this, it is also possible to scan IPs from a list. You can use this setting by editing the config file.
+
 ### Using the DHCP scanner
 
 The scanner creates separate logs for each day in the `/logs` folder.
@@ -74,20 +78,20 @@ Some devices refresh IPs from time to time, and some devices will attempt to con
 
 DHCP uses broadcasting, which means that this scanner only has to listen and doesn't use up your bandwidth at all. You should be able to leave it running without a big footprint - or start it when you connect a new device to see it connecting. If the device is still connected to the LAN, you can use the LAN scanner feature to check the device for open ports.
 
-Note: Devices which already are connected will not show in the logs, as they already have their IPs in the LAN. Reconnecting devices should show up, however.
+Note: Devices which already are connected will not show in the logs, as they already have their IPs in the LAN. Reconnecting devices should show up in the logs, however.
 
 ## Issues
 
 Sometimes when scanning a local network, the tool will choose the wrong interface, for example a VMware one.
 In my case I am expecting `192.168.1.27` as my address, but I sometimes I get `192.168.56.1`.
-This seems to happen when I have another terminal open, but there might be other reasons too.
+This seems to happen when I have another terminal open or when using an IDE, but there might be other reasons too.
 
 For users: make sure that the local IP in the tool matches the IP you use for network access. Instructions:
 * [Windows](https://www.wikihow.com/Check-a-Computer-IP-Address) (make sure you're checking the IP from wireless or ethernet, whichever you use, and not something else)
 * [Mac](https://www.wikihow.com/Find-Your-IP-Address-on-a-Mac)
 * Linux - `ip a` or `ifconfig`
 
-If the IP doesn't match, stop any programs that might interfere and relaunch the tool.
+If the IP doesn't match, stop any programs that might interfere and try the scan again.
 
 ## Contributing
 
