@@ -28,12 +28,12 @@ services = {
 
 
 ip_list_setting = 1
-# This specifies the method of scanning
-# 3 is treating all 255 hosts as up and scanning their ports
-# 2 is treating hosts as up, but scanning the ones from the list below
+# This specifies the method of scanning.
+# 3 is treating all 255 hosts as up and scanning their ports;
+# 2 is treating hosts as up, but scanning the ones from the list below;
 # 1 (and anything else) is scanning hosts determined to be up by using a ping sweep.
 
-# If the above is set to True, the tool uses this custom list:
+# If the above is set to 2, the tool uses this custom list:
 manual_ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
 # ===========MISC SETTINGS==========
