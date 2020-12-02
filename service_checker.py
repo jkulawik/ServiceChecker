@@ -126,6 +126,19 @@ def ip_check_local(ipl):
         return True
 
 
+# This is a substitute for ping sweep
+# Takes an IP and generates a list with the assumption of the net being /24
+def generate_ips(ip):
+    octets = ip.split('.')
+    net_prefix = octets[0] + '.' + octets[1] + '.' + octets[2]
+
+    ip_list = []
+    # TODO this is in testing, the final range should be up to 255
+    for i in range(1, 20):
+        ip_list.append(net_prefix+'.{}'.format(i))
+    return ip_list
+
+
 def local_scan():
     ipl = get_lan_ip()  # Local IP
 
@@ -135,15 +148,20 @@ def local_scan():
         print('Your address does not appear to be from a local network. Aborting scan.')
     else:
 
-        if config.custom_ips:
+        x = config.ip_list_setting
+        if x == 3:
+            print('Skipping ping sweep.')
+            print('Scanning all IPs in the last IP octet range (like in a /24 subnet).')
+            ip_list = generate_ips(ipl)
+        elif x == 2:
+            print('Skipping ping sweep.')
             print('Scanning manually entered IPs.')
             ip_list = config.manual_ip_list
         else:
-            print('Note: currently the program can only scan the addresses '
-                  'in the last IP octet range (like in a /24 subnet).')
+            print('Ping sweeping the IPs in the last IP octet range (like in a /24 subnet).')
             ip_list = ping_sweep.get_ip_list(ipl)
 
-        # print(ip_list)
+        print(ip_list)
 
         data_list = []
         open_ports_found = False
@@ -154,18 +172,19 @@ def local_scan():
         print('Acquiring host data...')
         start_time = time.time()
         for address in ip_list:
+            mac_addr = str(getmacbyip(address))  # TODO this needs a timeout for optimisation
+
+            # This means host was unresponsive
+            # It only matters when skipping ping sweep
+            if mac_addr == 'None':
+                continue
+
+            host_data = socket.gethostbyaddr(address)
+            hostname = host_data[0]  # host_data structure is: (name, aliases, [IPs])
+            vendor = mac_vendor.get_str(mac_addr)
+
             ports = get_ports(address, ip_ports)
             ports.sort()
-            hostname = 'Host may be down'
-
-            try:
-                host_data = socket.gethostbyaddr(address)
-                hostname = host_data[0]  # host_data structure is: (name, aliases, [IPs])
-            except:
-                pass
-
-            mac_addr = str(getmacbyip(address))
-            vendor = mac_vendor.get_str(mac_addr)
 
             ip_data = [
                 address,

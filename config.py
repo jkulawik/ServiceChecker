@@ -21,12 +21,19 @@ services = {
     2332: 'Telnet (unofficial port)',
     5000: 'Multiple protocols use this port - might be UPnP or something else',
 }
+# TODO this could be a straight integer list and socket.getservbyport() could be used for the names instead
 
 # Set this to true to skip the ping sweep and use your preferred IPs
 # (for example when you know some host is in the network but it doesn't respond to pings)
-custom_ips = False
 
-# If the above is set to True, the tool uses this list:
+
+ip_list_setting = 1
+# This specifies the method of scanning
+# 3 is treating all 255 hosts as up and scanning their ports
+# 2 is treating hosts as up, but scanning the ones from the list below
+# 1 (and anything else) is scanning hosts determined to be up by using a ping sweep.
+
+# If the above is set to True, the tool uses this custom list:
 manual_ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
 
 # ===========MISC SETTINGS==========
@@ -45,7 +52,7 @@ port_timeout = 0.05
 # It will slow down the scan, however.
 # The time is given in seconds
 
-ping_threads = 16
+ping_threads = 17
 # Number of threads for the ping sweep. Impacts scan time.
 # You can experiment with it, but
 # I found that more is not necessarily better in this case.
