@@ -11,7 +11,6 @@ services = {
     23: 'Telnet',
     25: 'SMTP',
     53: 'DNS',
-    69: 'Trivial FTP',
     80: 'HTTP',
     443: 'HTTPS',
     1900: 'SSDP (might indicate the presence of UPnP)',
@@ -20,8 +19,11 @@ services = {
     2323: 'Telnet (unofficial port)',
     2332: 'Telnet (unofficial port)',
     5000: 'Multiple protocols use this port - might be UPnP or something else',
+    8080: 'HTTP (alternative port)',
+    8008: 'HTTP (alternative port)',
+    8000: 'HTTP (alternative port)',
+    8443: 'HTTPS (alternative port)',
 }
-# TODO this could be a straight integer list and socket.getservbyport() could be used for the names instead
 
 # Set this to true to skip the ping sweep and use your preferred IPs
 # (for example when you know some host is in the network but it doesn't respond to pings)
