@@ -106,14 +106,6 @@ def get_lan_ip():
     return ip
 
 
-# TODO use this to print ---- above the results table... or delete it
-def get_biggest_len(_list):
-    max_len = -1
-    for element in _list:
-        if len(element) > max_len:
-            max_len = len(element)
-
-
 # Check if given IP (string format) is a LAN IP:
 def ip_check_local(ipl):
     if not (ipl.startswith('192.168.') or ipl.startswith('10.') or ipl.startswith('17.')):
@@ -233,8 +225,8 @@ def local_scan():
 def main():
 
     # Test hosts:
-    # ip = '24.158.43.67'  # Test host - vulnerable
-    ip = '40.114.177.156 '  # Duckduckgo.com
+    ip = '24.158.43.67'  # Test host - vulnerable
+    # ip = '40.114.177.156 '  # Duckduckgo.com
     # ip = '8.8.8.8' # Test host - Google DNS
 
     print('\n----Service Checker----\n')

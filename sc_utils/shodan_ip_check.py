@@ -1,11 +1,12 @@
 
 from shodan import Shodan
 from os import path
+import textwrap
 
 # Initialisations
 
 api_file = "shodan_api_key.txt"
-
+log_file = 'Vulnerabilities.txt'
 
 def get_cvss_severity(score):
     score = float(score)
@@ -20,6 +21,18 @@ def get_cvss_severity(score):
         return base + "High"
     else:
         return base + "Critical"
+
+
+def log(message):
+    with open(log_file, 'a') as file:
+        file.write(message + '\n')
+
+
+# Check log for a string
+def chk_log(message):
+    with open(log_file, 'r') as file:
+        whitelist = file.read()
+    return message in whitelist
 
 
 # The main function of the file
@@ -74,7 +87,7 @@ def check_shodan(ip):
             print('No well-known vulnerabilities detected on the opened ports.')
 
         # -------End of the summary-------
-        input("\nPress Enter to display full scan data...")
+        input("\nPress Enter to display full scan data...\n")
 
         print('\nScan data:')
         print('│')
@@ -107,21 +120,30 @@ def check_shodan(ip):
             # -------Vulnerabilities-------
             if 'vulns' in entry:
                 vulns = entry['vulns']
-                # print(vulns)
                 for vuln in vulns:
                     key = str(vuln)
                     print('│\t\t├──Vulnerability: {}'.format(key))
-                    vuln_data = vulns[key]
-                    # print(vuln_data)
-                    score = vuln_data['cvss']
-                    print('│\t\t│\t├──Severity score (CVSS standard): {}/10'.format(score))
-                    print('│\t\t│\t├──{}'.format(get_cvss_severity(score)))
-                    print('│\t\t│\t├──Summary: ')  # TODO This needs better formatting
-                    # TODO Log this data instead? the references too
-                    # pprint.pprint(vuln_data['summary'])
-                    print('│\t\t│\t├──{}'.format(vuln_data['summary']))
-                    # vuln_data['references'] # This is a list
-                    # vuln_data['summary']
+
+                    if not chk_log(key):
+                        vuln_data = vulns[key]
+                        score = vuln_data['cvss']
+
+                        print('│\t\t│\t├──Unregistered vulnerability. Printing more information to log file.')
+                        print('│\t\t│\t├──Severity score (CVSS standard): {}/10'.format(score))
+                        print('│\t\t│\t├──{}'.format(get_cvss_severity(score)))
+
+                        log('\n' + '='*70 + '\nVulnerability: {}'.format(key))
+                        log('Severity score (CVSS standard): {}/10'.format(score))
+                        log(get_cvss_severity(score))
+                        log('\nSummary:')
+                        txt = textwrap.wrap(vuln_data['summary'], width=70)
+                        for line in txt:
+                            log(line)
+                        log('\nReferences:')
+                        for link in vuln_data['references']:
+                            log(link)
+                    else:
+                        print('│\t\t│\t├──Vulnerability data already in log file.')
         return ipinfo["ports"]
 
     except Exception as exc:
