@@ -34,6 +34,15 @@ socket.setdefaulttimeout(config.port_timeout)  # This is for the scans to be fas
 def print_type(arg):
     print("Data type: {}".format(type(arg)))
 
+
+def prune_whitechars_at_ends(message):
+    while message.endswith('\n') or message.endswith('\r'):
+        message = message[:-1]
+    while message.startswith('\n') or message.startswith('\r') or message.startswith(' '):
+        message = message[1:]
+
+    return message
+
 # LAN scan functions
 
 
@@ -91,6 +100,7 @@ def banner_grab(job_q, results_q, service_dict):
                 pass
 
             banner_txt = banner.decode('iso-8859-1')
+            banner_txt = prune_whitechars_at_ends(banner_txt)
             #print('{}:{}'.format(ip_address, port))
 
             if check_port_type(port, 'HTTP') or 'HTTP' in banner_txt:
@@ -311,11 +321,16 @@ def local_scan():
             if decision == 'Y':
                 print('Grabbing banners for all services. This might take a minute...')
                 banner_data = multithread_scan(ports_by_ip, banner_grab)
-                pprint.pprint(banner_data)
+                #pprint.pprint(banner_data)
                 for row in banner_data:
                     ip_address = row[0]
+
+                    host_data = socket.gethostbyaddr(ip_address)
+                    hostname = host_data[0]
+
                     banner_by_port_list = row[1]
-                    print(ip_address)
+                    print('{} ({})'.format(ip_address, hostname))
+
                     for entry in banner_by_port_list:
                         port = entry[0]
                         banner = entry[1]
@@ -376,7 +391,12 @@ def main():
             #dhcp_listener.log('mny test...')
 
             # Service list test
-            pprint.pprint(services)
+            # pprint.pprint(services)
+
+            tst = prune_whitechars_at_ends(' \r\nmny test jesse\n\r')
+            print('start')
+            print('{}end'.format(tst))
+
             #quit()
         else:
             print('Wrong command.')
