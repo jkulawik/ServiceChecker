@@ -29,14 +29,14 @@ services = {
 # (for example when you know some host is in the network but it doesn't respond to pings)
 
 
-ip_list_setting = 1
+ip_list_setting = 2
 # This specifies the method of scanning.
 # 3 is treating all 255 hosts as up and scanning their ports;
 # 2 is treating hosts as up, but scanning the ones from the list below;
 # 1 (and anything else) is scanning hosts determined to be up by using a ping sweep.
 
 # If the above is set to 2, the tool uses this custom list:
-manual_ip_list = ['192.168.1.1', '192.168.1.27', '192.168.1.32']
+manual_ip_list = ['192.168.1.1', '192.168.1.3', '192.168.1.32']
 
 # ===========MISC SETTINGS==========
 

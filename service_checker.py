@@ -15,6 +15,10 @@ from scapy.layers.l2 import getmacbyip
 from sc_utils import mac_vendor
 import config
 
+# Banner grabbing
+import telnetlib
+import ssl
+
 # Utilities
 import time
 import pprint
@@ -30,10 +34,96 @@ socket.setdefaulttimeout(config.port_timeout)  # This is for the scans to be fas
 def print_type(arg):
     print("Data type: {}".format(type(arg)))
 
-# Port scan functions
+# LAN scan functions
+
+
+# Check configs. E.g. check_port_type(22, 'SSH') returns true
+def check_port_type(port, service):
+    description = services.get(port)
+    return service in description
 
 
 # Thread job
+# service_dict had to be passed to be compatible with the thread scheduler :(
+def banner_grab(job_q, results_q, service_dict):
+    while True:
+        ports_by_ip = job_q.get()  # e.g. ['192.168.1.32', [21, 22, 23]]
+        if ports_by_ip is None:
+            break
+
+        ip_address = ports_by_ip[0]
+        ports = ports_by_ip[1]
+        banner_list = []
+
+        for port in ports:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(3)
+            status = s.connect_ex((ip_address, port))
+            if status != 0:
+                # Skip unresponsive sockets
+                continue
+
+            if check_port_type(port, 'HTTPS'):
+                s = ssl.wrap_socket(s, keyfile=None, certfile=None,
+                                    server_side=False, cert_reqs=ssl.CERT_NONE,
+                                    ssl_version=ssl.PROTOCOL_SSLv23)
+
+            if check_port_type(port, 'HTTP'):
+                message = b'HEAD HTTP/1.1 \r\n'
+                # message = b'GET HTTP/1.1 \r\n'
+            else:
+                message = b'\r\n\r\n'
+                # message = b'help\r\n'
+
+            banner = b''  # Init to not raise further exceptions when a socket throws an exception
+            # Catching exceptions is bad for performance, but has to be done
+            # because socket.receive always throws exceptions rather than returning error codes
+            try:
+                if check_port_type(port, 'Telnet'):
+                    tn = telnetlib.Telnet(ip_address, port)
+                    banner = tn.read_until(b'ogin', 3)  # Read until the login prompt
+                    tn.close()
+                else:
+                    s.send(message)
+                    banner = s.recv(1024)
+                    s.close()
+            except:
+                pass
+
+            banner_txt = banner.decode('iso-8859-1')
+            #print('{}:{}'.format(ip_address, port))
+
+            if check_port_type(port, 'HTTP') or 'HTTP' in banner_txt:
+                # print('[i] {}'.format(banner_txt))
+
+                if 'Server' not in banner_txt:
+                    banner_txt = '[-] Server not in HTTP banner.'
+                else:
+                    banner_lines = banner_txt.splitlines()
+
+                    for line in banner_lines:
+                        if 'Server' in line:
+                            banner_txt = '[+] {}'.format(line)
+            else:
+                # print(str(banner))
+                if banner_txt == '':
+                    banner_txt = '[-] Empty response'
+                else:
+                    banner_txt = '[+] {}'.format(banner_txt)
+
+            banner_list.append([port, banner_txt])
+
+        output_data = [ip_address, banner_list]
+        # Resultant row of data:
+        # [
+        # '192.168.1.32',
+        # [  [21, 'ftp banner'], [22, 'SSH banner'], [23, 'telnet banner']  ]
+        # ]
+        results_q.put(output_data)
+
+
+# Thread job.
+# The result of using it with multithread_scan is a list with [ ip, open_ports[] ] in each entry
 def port_scan(job_q, results_q, service_dict):
     while True:
         ip = job_q.get()
@@ -56,37 +146,33 @@ def port_scan(job_q, results_q, service_dict):
 
 
 # This is almost the same as ping_sweep. Check that file for documentation
-def scan_ports(ip_list):
+def multithread_scan(job_list, scan_job):
     start_time = time.time()
-    pool_size = len(ip_list)
-
-    print('Scanning for open ports on found hosts...')
+    pool_size = len(job_list)
 
     jobs = multiprocessing.Queue()
     results = multiprocessing.Queue()
 
-    pool = [multiprocessing.Process(target=port_scan, args=(jobs, results, services))
+    pool = [multiprocessing.Process(target=scan_job, args=(jobs, results, services))
             for i in range(pool_size)]
     for p in pool:
         p.start()
 
-    for ip in ip_list:
-        jobs.put(ip)
+    for job in job_list:
+        jobs.put(job)
 
     for p in pool:
         jobs.put(None)
     for p in pool:
         p.join()
 
-    ip_ports = []
+    result_list = []
     while not results.empty():
-        ip_ports.append(results.get())
+        result_list.append(results.get())
 
-    print('Port scan finished.')
-    print("Scan duration: {} seconds".format(time.time() - start_time))
+    print("Scan finished. Duration: {} seconds".format(time.time() - start_time))
 
-    # The result is a list with [ ip, open_ports[] ] in each entry
-    return ip_ports
+    return result_list
 
 
 # Gets the ports of the given IP from a list of elements of this kind: [ ip, open_ports[] ]
@@ -158,9 +244,10 @@ def local_scan():
         data_list = []
         open_ports_found = False
         open_ports = []
-        ip_ports = scan_ports(ip_list)
 
-        # Get host data
+        print('Scanning for open ports on found hosts...')
+        ports_by_ip = multithread_scan(ip_list, port_scan)
+
         print('Acquiring host data...')
         start_time = time.time()
         for address in ip_list:
@@ -175,7 +262,7 @@ def local_scan():
             hostname = host_data[0]  # host_data structure is: (name, aliases, [IPs])
             vendor = mac_vendor.get_str(mac_addr)
 
-            ports = get_ports(address, ip_ports)
+            ports = get_ports(address, ports_by_ip)
             ports.sort()
 
             ip_data = [
@@ -219,7 +306,29 @@ def local_scan():
         else:
             print('\nNo ports belonging to potentially dangerous services have been found.')
 
+        if open_ports_found:
+            decision = 'Y'  # input('Grab banners? Enter Y or n \n')
+            if decision == 'Y':
+                print('Grabbing banners for all services. This might take a minute...')
+                banner_data = multithread_scan(ports_by_ip, banner_grab)
+                pprint.pprint(banner_data)
+                for row in banner_data:
+                    ip_address = row[0]
+                    banner_by_port_list = row[1]
+                    print(ip_address)
+                    for entry in banner_by_port_list:
+                        port = entry[0]
+                        banner = entry[1]
+                        print('\tPort: {}'.format(port))
+                        print('\t\t{}'.format(banner))
+
+
 # End port scan functions
+
+
+# ==================================================================================================================== #
+# ====================================================MAIN============================================================ #
+# ==================================================================================================================== #
 
 
 def main():
