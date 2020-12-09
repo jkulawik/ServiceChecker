@@ -66,7 +66,7 @@ def banner_grab(job_q, results_q, service_dict):
 
         for port in ports:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(3)
+            s.settimeout(5.05)
             status = s.connect_ex((ip_address, port))
             if status != 0:
                 # Skip unresponsive sockets
@@ -78,13 +78,17 @@ def banner_grab(job_q, results_q, service_dict):
                                     ssl_version=ssl.PROTOCOL_SSLv23)
 
             if check_port_type(port, 'HTTP'):
+                # message = b'hello\r\n'
                 message = b'HEAD HTTP/1.1 \r\n'
                 # message = b'GET HTTP/1.1 \r\n'
+            elif check_port_type(port, 'DNS'):
+                message = b'version.bind. CHAOS TXT\r\n'
             else:
-                message = b'\r\n\r\n'
+                message = b''
+                # message = b'\r\n\r\n'
                 # message = b'help\r\n'
 
-            banner = b''  # Init to not raise further exceptions when a socket throws an exception
+            banner = b'Tool issue'  # Init to not raise further exceptions when a socket throws an exception
             # Catching exceptions is bad for performance, but has to be done
             # because socket.receive always throws exceptions rather than returning error codes
             try:
@@ -93,18 +97,20 @@ def banner_grab(job_q, results_q, service_dict):
                     banner = tn.read_until(b'ogin', 3)  # Read until the login prompt
                     tn.close()
                 else:
-                    s.send(message)
+                    # Many servers send data without even probing them, and in that case a probe can be disruptive.
+                    if message != b'':
+                        s.send(message)
                     banner = s.recv(1024)
                     s.close()
-            except:
-                pass
+            except Exception as exc:
+                exc_str = "Exception " + str(exc.__class__) + " occurred."
+                banner = bytes(exc_str, 'iso-8859-1')
 
             banner_txt = banner.decode('iso-8859-1')
             banner_txt = prune_whitechars_at_ends(banner_txt)
-            #print('{}:{}'.format(ip_address, port))
 
-            if check_port_type(port, 'HTTP') or 'HTTP' in banner_txt:
-                # print('[i] {}'.format(banner_txt))
+            if 'HTTP' in banner_txt:
+                print('[i] {}'.format(banner_txt))
 
                 if 'Server' not in banner_txt:
                     banner_txt = '[-] Server not in HTTP banner.'
@@ -118,6 +124,8 @@ def banner_grab(job_q, results_q, service_dict):
                 # print(str(banner))
                 if banner_txt == '':
                     banner_txt = '[-] Empty response'
+                elif 'xception' in banner_txt:
+                    banner_txt = '[-] {}'.format(banner_txt)
                 else:
                     banner_txt = '[+] {}'.format(banner_txt)
 

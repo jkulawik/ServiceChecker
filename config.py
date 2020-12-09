@@ -48,7 +48,7 @@ truncate_vendors = True
 
 # ===========PERFORMANCE SETTINGS==========
 
-port_timeout = 0.05
+port_timeout = 0.2
 # Most services can answer in milliseconds on a home network.
 # If the scans seem to not return anything, make the numbers bigger.
 # It will slow down the scan, however.
