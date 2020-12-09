@@ -92,6 +92,7 @@ def banner_grab(job_q, results_q, service_dict):
                     tn = telnetlib.Telnet(ip_address, port)
                     banner = tn.read_until(b'ogin', 3)  # Read until the login prompt
                     tn.close()
+                    print(banner)
                 else:
                     s.send(message)
                     banner = s.recv(1024)
