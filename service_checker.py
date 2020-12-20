@@ -1,5 +1,6 @@
 # Internet interaction imports
 from sc_utils import shodan_ip_check
+from requests import get
 
 # Ping sweep imports
 from sc_utils import ping_sweep
@@ -357,8 +358,8 @@ def local_scan():
 def main():
 
     # Test hosts:
-    ip = '24.158.43.67'  # Test host - vulnerable
-    # ip = '40.114.177.156 '  # Duckduckgo.com
+    # ip = '24.158.43.67'  # Test host - vulnerable
+    # ip = '40.114.177.156'  # Duckduckgo.com
     # ip = '8.8.8.8' # Test host - Google DNS
 
     print('\n----Service Checker----\n')
@@ -376,14 +377,15 @@ def main():
         elif command == '1':
             # Get router IP
             # ipify is open source and free; no visitor information is logged.
-            # ip = get('https://api.ipify.org').text # TODO uncomment for final release
+            ip = get('https://api.ipify.org').text # TODO uncomment for final release
             new_ports = shodan_ip_check.check_shodan(ip)
 
-            # Adding the detected ports to the scan list:
-            for port in new_ports:
-                if port not in services:
-                    services.update({port: 'Port detected on Shodan'})
-                    #config.services[port] = 'Port detected on Shodan'
+            # Adding the detected ports to the scan list (if list isn't empty):
+            if new_ports:
+                for port in new_ports:
+                    if port not in services:
+                        services.update({port: 'Port detected on Shodan'})
+                        # config.services[port] = 'Port detected on Shodan'
         elif command == '2':
             print('\nThe tool will now scan your local network for hosts and chosen opened ports.')
             local_scan()

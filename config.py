@@ -13,7 +13,6 @@ services = {
     53: 'DNS',
     80: 'HTTP',
     443: 'HTTPS',
-    1900: 'SSDP (might indicate the presence of UPnP)',
     2121: 'FTP (unofficial port)',
     2222: 'SSH (unofficial port)',
     2323: 'Telnet (unofficial port)',
@@ -25,11 +24,18 @@ services = {
     8443: 'HTTPS (alternative port)',
 }
 
+upd_services = {
+	161: 'SNMP (might leak device data)',
+	1900: 'SSDP (might indicate the presence of UPnP)',
+	5351: 'NAT Port Mapping Protocol and Port Control Protocol - Dangerous!',
+}
+# TODO implement UDP scans
+
 # Set this to true to skip the ping sweep and use your preferred IPs
 # (for example when you know some host is in the network but it doesn't respond to pings)
 
 
-ip_list_setting = 2
+ip_list_setting = 1
 # This specifies the method of scanning.
 # 3 is treating all 255 hosts as up and scanning their ports;
 # 2 is treating hosts as up, but scanning the ones from the list below;
