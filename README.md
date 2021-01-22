@@ -12,11 +12,12 @@ Features:
 * Local network scanner
   * Finds running devices
   * Checks and displays the host names, IPs, MAC addresses and vendors to make devices easier to identify.
-  * Scans for open ports (which hint at potentially vulnerable services running). The port list is configurable, but most common and dangerous ones are listed out-of-the-box.
-* [PLANNED?] Check for default credentials on chosen services
+  * Scans for open TCP ports (which hint at potentially vulnerable services running). The port list is configurable, but some common and dangerous ones are listed out-of-the-box.
 * Passive DHCP scanner that will let you monitor network access attempts. It features logging to text files and a MAC whitelist.
 
 ## Disclaimers
+
+Note that the tool currently does not detect UDP ports.
 
 This tool makes use of `shodan.io`, `ipify.org` and `macvendors.com` APIs.
 * Shodan is a service which scans all IPs for vulnerabilities and open ports. Querying it does not pose any danger, as they have that data already.
@@ -98,6 +99,7 @@ If the IP doesn't match, stop any programs that might interfere and try the scan
 More ports to scan are always welcome. Feel free to suggest them.
 
 If you wish to contribute code, here are the most urgent tasks:
+* UDP port scans
 * Add subnet mask detection
 * Add support for wider range of the ping sweep
 * Improve multithreading performance
